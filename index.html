@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4fd1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ניהול בחירות">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>מערכת ניהול בחירות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fa;--surface:#fff;--surface2:#eef1f6;--text:#1b2333;--muted:#5d6779;--border:#dde2ea;
+  --primary:#1f4fd1;--primary-soft:#e3eaff;--ok:#16834a;--ok-soft:#ddf3e6;--warn:#b26a00;--warn-soft:#fff0d6;
+  --bad:#c62828;--bad-soft:#fde3e3;--info:#0d7490;--info-soft:#dbf2f7;--shadow:0 1px 3px rgba(20,30,60,.08);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10141c;--surface:#181e29;--surface2:#212937;--text:#e6eaf2;--muted:#9aa4b6;--border:#2c3545;
+  --primary:#6f95ff;--primary-soft:#1f2c4d;--ok:#4cc77f;--ok-soft:#173326;--warn:#f0a840;--warn-soft:#3a2b12;
+  --bad:#ff6b6b;--bad-soft:#3d1c1f;--info:#4fc3dc;--info-soft:#163239;--shadow:none;}}
+:root[data-theme="dark"]{
+  --bg:#10141c;--surface:#181e29;--surface2:#212937;--text:#e6eaf2;--muted:#9aa4b6;--border:#2c3545;
+  --primary:#6f95ff;--primary-soft:#1f2c4d;--ok:#4cc77f;--ok-soft:#173326;--warn:#f0a840;--warn-soft:#3a2b12;
+  --bad:#ff6b6b;--bad-soft:#3d1c1f;--info:#4fc3dc;--info-soft:#163239;--shadow:none;}
+*{box-sizing:border-box}
+body{margin:0;font-family:Heebo,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{font-size:19px;margin:0;font-weight:800}
+header .sp{flex:1}
+.countdown{background:var(--primary-soft);color:var(--primary);padding:4px 12px;border-radius:99px;font-weight:700;font-size:13px}
+.layout{display:flex;min-height:calc(100vh - 58px)}
+nav{width:220px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);padding:12px 8px}
+nav button{display:flex;width:100%;align-items:center;justify-content:space-between;padding:10px 12px;border:0;background:none;border-radius:8px;cursor:pointer;text-align:right;margin-bottom:2px}
+nav button:hover{background:var(--surface2)}
+nav button.active{background:var(--primary-soft);color:var(--primary);font-weight:700}
+.badge{background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+main{flex:1;padding:20px 24px;min-width:0}
+h2{margin:0 0 4px;font-size:22px}
+.sub{color:var(--muted);margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.kpi .l{color:var(--muted);font-size:13px}.kpi .v{font-size:28px;font-weight:800;margin-top:2px}
+.kpi .h{font-size:12px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--border);vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:500;background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.tbl{overflow-x:auto}
+.btn{background:var(--primary);color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.warn{background:var(--warn)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.link{color:var(--primary);cursor:pointer;background:none;border:0;padding:0;font-weight:500}
+.link:hover{text-decoration:underline}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}.p-info{background:var(--info-soft);color:var(--info)}
+.p-mute{background:var(--surface2);color:var(--muted)}
+.bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:80px}
+.bar>i{display:block;height:100%;background:var(--primary);border-radius:99px}
+.bar.g>i{background:var(--ok)}
+.muted{color:var(--muted)}.small{font-size:12px}
+.crumbs{margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tree .node{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px}
+.tree .node:hover{background:var(--surface2)}
+.tree .kids{margin-right:22px;border-right:2px solid var(--border);padding-right:6px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar select,.toolbar input{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.steps{list-style:none;padding:0;margin:0}
+.steps li{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--border);align-items:flex-start}
+.steps li:last-child{border:0}
+.dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;flex-shrink:0;background:var(--surface2);color:var(--muted)}
+.dot.approved{background:var(--ok);color:#fff}.dot.submitted{background:var(--warn);color:#fff}.dot.rejected{background:var(--bad);color:#fff}
+.alert{padding:9px 12px;border-radius:8px;margin-bottom:8px;font-size:14px}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+dialog{border:0;border-radius:14px;padding:0;width:min(560px,94vw);background:var(--surface);color:var(--text);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,15,30,.5)}
+dialog .hd{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:800;font-size:17px;display:flex;justify-content:space-between}
+dialog .bd{padding:16px 18px;max-height:70vh;overflow:auto}
+dialog .ft{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-start}
+.f{display:block;margin-bottom:12px}.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:180px;padding-top:10px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.chart .col i{display:block;width:100%;max-width:46px;background:var(--primary);border-radius:6px 6px 0 0}
+.userbox{display:flex;align-items:center;gap:8px}
+.userbox select{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);max-width:300px}
+.scope{font-size:12px;color:var(--muted)}
+#tabbar{display:none}
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow)}
+.vcard.voted{opacity:.55}
+.vtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.vtop a{color:var(--primary);text-decoration:none;font-size:14px;direction:ltr;white-space:nowrap}
+.vact{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.vact select{padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:13px}
+.chip{border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:5px 10px;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip.on{background:var(--ok-soft);color:var(--ok);border-color:transparent;font-weight:700}
+.sheet-list button{display:flex;width:100%;align-items:center;gap:12px;padding:14px 6px;border:0;border-bottom:1px solid var(--border);background:none;font-size:16px;cursor:pointer;text-align:right}
+.sheet-list button:last-child{border:0}
+@media (max-width:860px){
+  body{font-size:15px;padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+  header{padding:calc(8px + env(safe-area-inset-top)) 16px 8px;gap:8px}
+  header h1{font-size:17px}
+  header .sp,header>.btn{display:none}
+  .countdown{font-size:11px;padding:3px 10px;margin-inline-start:auto}
+  .userbox{width:100%}.userbox>span{display:none}
+  .userbox select{max-width:none;width:100%;padding:9px 12px;font-size:16px}
+  .layout{min-height:auto}
+  nav{display:none}
+  main{padding:14px 14px 20px}
+  h2{font-size:20px}.sub{font-size:13px;margin-bottom:14px}
+  .grid2{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{padding:12px}.kpi .v{font-size:24px}
+  .card{padding:12px;border-radius:14px}
+  /* tables become stacked cards */
+  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr:first-child:has(th){display:none}
+  .tbl tr{border:1px solid var(--border);border-radius:12px;padding:8px 12px;margin-bottom:10px;background:var(--surface)}
+  .tbl td{border:0;padding:5px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left}
+  .tbl td:first-child{text-align:right;display:block;font-size:16px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+  .tbl td[data-label]:not(:first-child)::before{content:attr(data-label);color:var(--muted);font-size:12px;text-align:right;flex-shrink:0}
+  .tbl td:empty{display:none}
+  .tbl td .bar{flex:1}
+  .tbl td:last-child:not([data-label]),.tbl td[data-label=""]{justify-content:flex-start;flex-wrap:wrap;padding-top:8px}
+  .btn{padding:10px 16px}.btn.sm{padding:8px 12px;font-size:14px}
+  .toolbar{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .tree .node{flex-wrap:wrap}.tree .kids{margin-right:10px}
+  .f input,.f select,.f textarea{font-size:16px;padding:11px 12px}
+  dialog{width:100vw;max-width:100vw;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:88vh}
+  dialog .bd{max-height:62vh}
+  dialog .ft{padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-wrap:wrap}
+  .vlist{grid-template-columns:1fr}
+  .chip{padding:8px 12px}.vact select{font-size:16px;padding:7px 8px}
+  .toolbar input[type=search]{min-width:170px;font-size:16px}
+  #tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:10;background:var(--surface);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  #tabbar button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 0;position:relative;cursor:pointer}
+  #tabbar button .ic{font-size:21px;line-height:1.1}
+  #tabbar button.active{color:var(--primary);font-weight:700}
+  #tabbar .badge{position:absolute;top:0;left:calc(50% - 22px);font-size:10px;padding:0 5px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="appTitle">🗳️ מערכת ניהול בחירות</h1>
+  <span class="countdown" id="countdown"></span>
+  <span class="sp"></span>
+  <div class="userbox">
+    <span class="muted small">מחובר/ת כ:</span>
+    <select id="userSel" onchange="App.switchUser(this.value)"></select>
+  </div>
+  <button class="btn sec sm" onclick="App.reset()">איפוס נתוני דמו</button>
+</header>
+<div class="layout">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<div id="tabbar"></div>
+<dialog id="dlg"><form method="dialog" id="dlgForm"><div class="hd"><span id="dlgTitle"></span><button class="link" value="cancel" formnovalidate>✕</button></div><div class="bd" id="dlgBody"></div><div class="ft" id="dlgFt"></div></form></dialog>
+
+<script>
+(() => {
+const KEY = 'election-mgmt-v1';
+const TODAY = new Date().toISOString().slice(0,10);
+const TYPES = {
+  national:{label:'מטה ארצי', role:'מנהל/ת ארצי/ת', child:'district', lvl:0},
+  district:{label:'מחוז', role:'מנהל/ת מחוז', child:'city', lvl:1},
+  city:{label:'עיר / אזור', role:'רכז/ת עיר', child:'station', lvl:2},
+  station:{label:'קלפי', role:'אחראי/ת קלפי', child:null, lvl:3},
+};
+const STEP_ST = {pending:['ממתין','p-mute'], submitted:['הוגש לאישור','p-warn'], approved:['אושר','p-ok'], rejected:['נדחה','p-bad']};
+const TASK_ST = {open:['פתוחה','p-info'], progress:['בביצוע','p-warn'], done:['הושלמה','p-ok']};
+const PRIO = {low:['נמוכה','p-mute'], med:['בינונית','p-info'], high:['גבוהה','p-warn'], critical:['קריטית','p-bad']};
+const INC_ST = {open:['פתוח','p-bad'], handling:['בטיפול','p-warn'], resolved:['טופל','p-ok']};
+const HOURS = [8,10,12,14,16,18,20,22];
+const SUP = {support:['תומך/ת','p-ok','var(--ok)'], leaning:['נוטה לתמוך','p-info','var(--info)'], undecided:['מתלבט/ת','p-warn','var(--warn)'], against:['לא תומך/ת','p-bad','var(--bad)'], unknown:['לא ידוע','p-mute','var(--border)']};
+const isSup = v => v.support==='support' || v.support==='leaning';
+
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pct = (a,b) => b ? Math.round(a*100/b) : 0;
+const fmtDate = d => d ? new Date(d).toLocaleDateString('he-IL') : '';
+const fmtTime = d => new Date(d).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const addDays = n => { const d = new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+
+/* ---------- seed ---------- */
+function seed(){
+  const s = {units:[],users:[],templates:[],processes:[],tasks:[],incidents:[],turnout:{},log:[],electionDate:addDays(22),view:'dash',focus:null};
+  const first = ['רונית','אבי','מיכל','יוסי','נועה','דני','שרה','עומר','תמר','איתי','הילה','גלעד','מאיה','רועי','ליאת','אסף','ענבל','משה','דנה','עידו','קרן','אלון','רותם','חן','יעל','ניר','שירה','אמיר'];
+  const last = ['לוי','כהן','מזרחי','פרץ','ביטון','אברהם','פרידמן','דהן','אזולאי','שפירא','חדד','גבאי'];
+  let ni = 0; const nm = () => `${first[ni++ % first.length]} ${last[rnd(0,last.length-1)]}`;
+  const add = (name,type,parentId,extra={}) => { const u={id:uid(),name,type,parentId,manager:nm(),phone:'05'+rnd(0,9)+'-'+rnd(1000000,9999999),...extra}; s.units.push(u); return u; };
+  const nat = add('מטה ארצי','national',null);
+  const map = {'מחוז צפון':['חיפה','נצרת'],'מחוז מרכז':['תל אביב','פתח תקווה'],'מחוז דרום':['באר שבע','אשדוד']};
+  let st = 101;
+  for (const [d,cities] of Object.entries(map)){
+    const du = add(d,'district',nat.id);
+    for (const c of cities){
+      const cu = add(c,'city',du.id);
+      for (let i=0;i<3;i++){ add(`קלפי ${st}`,'station',cu.id,{voters:rnd(550,900),address:`בית ספר ${['אלון','הדר','רמז','גפן','ארזים'][rnd(0,4)]}, ${c}`}); st++; }
+    }
+  }
+  s.users = s.units.map(u => ({id:uid(), name:u.manager, unitId:u.id}));
+  s.currentUser = s.users[0].id;
+
+  s.templates = [
+    {id:uid(), name:'מוכנות קלפי ליום הבחירות', type:'station', steps:['מינוי צוות קלפי','הדרכת צוות והסמכה','קבלת ציוד וחומרי הצבעה','בדיקת מקום, נגישות ושילוט','אישור מוכנות סופי']},
+    {id:uid(), name:'תוכנית מבצעית עירונית', type:'city', steps:['מיפוי קלפיות ונקודות תורפה','גיוס מתנדבים ומשקיפים','תוכנית הסעות ולוגיסטיקה','אישור תקציב עירוני']},
+    {id:uid(), name:'היערכות מחוזית', type:'district', steps:['מינוי רכזי ערים','תרגיל מחוזי','אישור תוכנית מחוזית']},
+  ];
+  for (const t of s.templates){
+    for (const u of s.units.filter(x=>x.type===t.type)){
+      const k = rnd(0, t.steps.length);
+      const steps = t.steps.map((n,i) => ({name:n, status: i<k ? 'approved' : 'pending', note:'', by: i<k ? 'מערכת' : '', at: i<k ? new Date(Date.now()-rnd(1,10)*864e5).toISOString() : ''}));
+      if (k < steps.length && Math.random() < .55){ steps[k].status='submitted'; steps[k].note='בוצע, מצורף דיווח'; steps[k].by=u.manager; steps[k].at=new Date().toISOString(); }
+      s.processes.push({id:uid(), templateId:t.id, name:t.name, unitId:u.id, steps, createdAt:new Date(Date.now()-12*864e5).toISOString()});
+    }
+  }
+  const pick = type => s.units.filter(u=>u.type===type);
+  const mkTask = (title,unit,by,due,prio,status='open') => s.tasks.push({id:uid(),title,desc:'',unitId:unit.id,byUnit:by.id,due,prio,status,createdAt:new Date().toISOString()});
+  pick('district').forEach(d => mkTask('הגשת דוח כוח אדם מחוזי', d, nat, addDays(3), 'high', Math.random()<.4?'progress':'open'));
+  pick('city').forEach((c,i) => mkTask('אישור רשימת מתנדבים לסבב ב׳', c, s.units.find(u=>u.id===c.parentId), addDays(i%3===0?-2:5), 'med', i%4===0?'done':'open'));
+  pick('station').slice(0,8).forEach((k,i) => mkTask('אימות כתובת ושעות פתיחה', k, s.units.find(u=>u.id===k.parentId), addDays(i%2?-1:2), 'low', i%3===0?'done':'open'));
+  const sts = pick('station');
+  const mkInc = (u,title,sev,status) => s.incidents.push({id:uid(),unitId:u.id,handlerId:status==='handling'?u.parentId:u.id,title,sev,status,createdAt:new Date(Date.now()-rnd(1,48)*36e5).toISOString(),log:[{at:new Date().toISOString(),by:u.manager,text:'נפתח אירוע'}]});
+  mkInc(sts[2],'חוסר בפתקי הצבעה של רשימה אחת','critical','open');
+  mkInc(sts[5],'מבנה הקלפי אינו נגיש לכיסאות גלגלים','high','handling');
+  mkInc(sts[9],'אחד מחברי הצוות הודיע על היעדרות','med','open');
+  mkInc(sts[14],'בעיית תאורה בתא ההצבעה','low','resolved');
+  s.log.push({at:new Date().toISOString(), by:'מערכת', text:'נוצרו נתוני דמו'});
+  seedCampaign(s);
+  return s;
+}
+function seedCampaign(s){
+  s.candidate = s.candidate || 'מועמד/ת לדוגמה';
+  s.mobilizers = []; s.voters = [];
+  const F = ['אורי','בתיה','גיל','דבורה','הדס','ויקטור','זיו','חנה','טל','יונתן','כרמית','לירון','מרים','נתן','סיון','עדי','פנינה','צחי','קובי','רחל','שלמה','תומר','אלה','בני','גאיה','דוד','הראל','יפית','מוטי','נגה'];
+  const L = ['לוי','כהן','מזרחי','פרץ','ביטון','אברהם','פרידמן','דהן','אזולאי','שפירא','חדד','גבאי','אוחיון','בן דוד','רוזן','קליין','עמר','סויסה'];
+  const nm = () => `${F[rnd(0,F.length-1)]} ${L[rnd(0,L.length-1)]}`;
+  const ph = () => '05'+rnd(0,8)+'-'+rnd(1000000,9999999);
+  const supW = ['support','support','support','leaning','leaning','undecided','undecided','against','unknown','unknown'];
+  s.units.filter(u=>u.type==='city').forEach(c => {
+    const sts = s.units.filter(u=>u.parentId===c.id && u.type==='station');
+    for (let i=0, n=rnd(3,5); i<n; i++){
+      const m = {id:uid(), name:nm(), phone:ph(), unitId:c.id, target:rnd(3,8)*10};
+      s.mobilizers.push(m); s.users.push({id:uid(), name:m.name, unitId:c.id, mobId:m.id});
+      for (let j=0, k=rnd(4,48); j<k; j++)
+        s.voters.push({id:uid(), name:nm(), phone:ph(), mobId:m.id, stationId:sts.length?sts[rnd(0,sts.length-1)].id:'', support:supW[rnd(0,9)], contacted:Math.random()<.6, voted:false, ride:Math.random()<.12, note:''});
+    }
+  });
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch(e){ S = seed(); }
+if (!S.mobilizers) seedCampaign(S);
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
+
+/* ---------- hierarchy helpers ---------- */
+const U = id => S.units.find(u=>u.id===id);
+const me = () => S.users.find(u=>u.id===S.currentUser) || S.users[0];
+const myUnit = () => U(me().unitId);
+const kids = id => S.units.filter(u=>u.parentId===id);
+const desc = id => { const out=[U(id)]; for (const k of kids(id)) out.push(...desc(k.id)); return out; };
+const descIds = id => new Set(desc(id).map(u=>u.id));
+const ancestors = id => { const out=[]; let u=U(id); while(u && u.parentId){ u=U(u.parentId); out.push(u); } return out; };
+const isAncestor = (a,b) => ancestors(b).some(x=>x.id===a);           // a strictly above b
+const inScope = id => id===me().unitId || isAncestor(me().unitId, id);
+const scopeUnits = () => desc(me().unitId);
+const path = id => [...ancestors(id).reverse(), U(id)].map(u=>u.name).join(' › ');
+const unitLabel = u => `${u.name} <span class="muted small">(${TYPES[u.type].label})</span>`;
+const log = text => { S.log.unshift({at:new Date().toISOString(), by:`${me().name} (${myUnit().name})`, text}); S.log = S.log.slice(0,500); };
+
+const curStep = p => p.steps.findIndex(s=>s.status!=='approved');
+const procProgress = p => pct(p.steps.filter(s=>s.status==='approved').length, p.steps.length);
+function readiness(unitId){
+  const ids = descIds(unitId);
+  let a=0,t=0; S.processes.filter(p=>ids.has(p.unitId)).forEach(p=>{ t+=p.steps.length; a+=p.steps.filter(s=>s.status==='approved').length; });
+  return pct(a,t);
+}
+const lastVotes = stId => { const r = S.turnout[stId]||[]; return r.length ? r[r.length-1].votes : 0; };
+function turnoutOf(unitId){
+  const st = desc(unitId).filter(u=>u.type==='station');
+  const voters = st.reduce((a,u)=>a+(+u.voters||0),0), votes = st.reduce((a,u)=>a+lastVotes(u.id),0);
+  return {voters, votes, pct:pct(votes,voters), stations:st.length, reported:st.filter(u=>(S.turnout[u.id]||[]).length).length};
+}
+const pendingApprovals = () => { const out=[]; S.processes.forEach(p=>{ if (!isAncestor(me().unitId,p.unitId)) return; p.steps.forEach((s,i)=>{ if(s.status==='submitted') out.push({p,i}); }); }); return out; };
+const isOverdue = t => t.status!=='done' && t.due && t.due < TODAY;
+
+/* ---------- campaign helpers ---------- */
+const isMob = () => !!me().mobId;
+const M = id => S.mobilizers.find(m=>m.id===id);
+const mobsIn = unitId => { const ids = descIds(unitId); return S.mobilizers.filter(m=>ids.has(m.unitId)); };
+const votersIn = unitId => { const ms = new Set(mobsIn(unitId).map(m=>m.id)); return S.voters.filter(v=>ms.has(v.mobId)); };
+const visibleMobs = () => isMob() ? S.mobilizers.filter(m=>m.id===me().mobId) : mobsIn(me().unitId);
+const visibleVoters = () => isMob() ? S.voters.filter(v=>v.mobId===me().mobId) : votersIn(me().unitId);
+function vStats(list){
+  const s = {total:list.length, support:0, leaning:0, undecided:0, against:0, unknown:0, contacted:0, voted:0, supVoted:0, ride:0};
+  list.forEach(v => { s[v.support]++; if(v.contacted) s.contacted++; if(v.voted) s.voted++; if(v.voted && isSup(v)) s.supVoted++; if(v.ride) s.ride++; });
+  s.sup = s.support + s.leaning; return s;
+}
+const supBar = st => `<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--surface2)">${Object.keys(SUP).map(k=>st[k]?`<i title="${SUP[k][0]}: ${st[k]}" style="width:${st[k]*100/Math.max(st.total,1)}%;background:${SUP[k][2]}"></i>`:'').join('')}</div>
+  <div class="small muted" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">${Object.keys(SUP).map(k=>`<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${SUP[k][2]}"></span> ${SUP[k][0]} ${st[k]}</span>`).join('')}</div>`;
+
+/* ---------- modal ---------- */
+let dlgHandler = null;
+function modal(title, body, buttons){ // buttons: [{label, cls, value, fn}]
+  document.getElementById('dlgTitle').textContent = title;
+  document.getElementById('dlgBody').innerHTML = body;
+  document.getElementById('dlgFt').innerHTML = buttons.map(b=>`<button class="btn ${b.cls||''}" value="${b.value}" ${b.novalidate?'formnovalidate':''}>${b.label}</button>`).join('') + `<button class="btn sec" value="cancel" formnovalidate>סגירה</button>`;
+  dlgHandler = buttons;
+  document.getElementById('dlg').showModal();
+}
+document.getElementById('dlgForm').addEventListener('submit', e => {
+  const v = e.submitter && e.submitter.value;
+  if (!v || v==='cancel' || !dlgHandler) return;
+  const b = dlgHandler.find(x=>x.value===v);
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  if (b && b.fn){ const keep = b.fn(data); if (keep===false){ e.preventDefault(); return; } save(); render(); }
+});
+
+/* ---------- views ---------- */
+const VIEWS_MOB = [['voters','👥 הבוחרים שלי'],['gotv','🚀 הוצאה להצבעה']];
+const VIEWS = [
+  ['dash','📊 לוח בקרה'],['mob','🤝 ממריצים'],['voters','👥 בוחרים'],['gotv','🚀 הוצאה להצבעה'],['org','🏛️ מבנה ארגוני'],['proc','🔄 תהליכים'],['appr','✅ אישורים ופיקוח'],
+  ['tasks','📋 משימות'],['inc','🚨 אירועים וחריגות'],['turn','🗳️ דיווחי הצבעה'],['log','📜 יומן פעולות']
+];
+
+function render(){
+  const daysLeft = Math.ceil((new Date(S.electionDate) - new Date(TODAY))/864e5);
+  document.getElementById('countdown').textContent = daysLeft>0 ? `${daysLeft} ימים ליום הבחירות (${fmtDate(S.electionDate)})` : daysLeft===0 ? 'היום יום הבחירות' : 'הבחירות הסתיימו';
+  const sel = document.getElementById('userSel');
+  document.getElementById('appTitle').textContent = `🗳️ מטה ${S.candidate}`;
+  sel.innerHTML = Object.keys(TYPES).map(t => `<optgroup label="${TYPES[t].role}">` + S.users.filter(u=>!u.mobId && U(u.unitId)?.type===t).map(u=>`<option value="${u.id}" ${u.id===S.currentUser?'selected':''}>${esc(u.name)} — ${esc(U(u.unitId).name)}</option>`).join('') + '</optgroup>').join('')
+    + `<optgroup label="ממריצים">` + S.users.filter(u=>u.mobId).map(u=>`<option value="${u.id}" ${u.id===S.currentUser?'selected':''}>${esc(u.name)} — ממריץ/ה, ${esc(U(u.unitId)?.name||'')}</option>`).join('') + '</optgroup>';
+  const views = isMob() ? VIEWS_MOB : VIEWS;
+  if (!views.some(v=>v[0]===S.view)) S.view = views[0][0];
+  const ids = descIds(me().unitId);
+  const badges = {
+    appr: pendingApprovals().length,
+    tasks: S.tasks.filter(t=>t.unitId===me().unitId && t.status!=='done').length,
+    inc: S.incidents.filter(i=>ids.has(i.unitId) && i.status!=='resolved').length,
+  };
+  if (isMob()) { badges.appr = badges.tasks = badges.inc = 0; }
+  badges.gotv = visibleVoters().filter(v=>isSup(v)&&!v.voted).length && new Date(TODAY) >= new Date(S.electionDate) ? visibleVoters().filter(v=>isSup(v)&&!v.voted).length : 0;
+  document.getElementById('nav').innerHTML = views.map(([k,l]) => `<button class="${S.view===k?'active':''}" onclick="App.go('${k}')"><span>${l}</span>${badges[k]?`<span class="badge">${badges[k]}</span>`:''}</button>`).join('');
+  const fn = {dash:vDash, mob:vMob, voters:()=>vVoters('all'), gotv:()=>vVoters('gotv'), org:vOrg, proc:vProc, appr:vAppr, tasks:vTasks, inc:vInc, turn:vTurn, log:vLog}[S.view] || vDash;
+  document.getElementById('main').innerHTML = fn();
+  // label table cells so they can render as stacked cards on mobile
+  document.querySelectorAll('#main .tbl table').forEach(tb => {
+    const heads = [...tb.querySelectorAll('tr:first-child th')].map(th => th.textContent.trim());
+    tb.querySelectorAll('tr').forEach(tr => [...tr.children].forEach((td,i) => { if (td.tagName==='TD') td.dataset.label = heads[i] || ''; }));
+  });
+  const TAB = isMob() ? [['voters','👥','הבוחרים שלי'],['gotv','🚀','להצבעה']] : [['dash','📊','בקרה'],['mob','🤝','ממריצים'],['voters','👥','בוחרים'],['appr','✅','אישורים']];
+  const moreActive = !TAB.some(t=>t[0]===S.view);
+  const moreBadge = (badges.tasks||0) + (badges.inc||0);
+  document.getElementById('tabbar').innerHTML = TAB.map(([k,ic,l]) => `<button class="${S.view===k?'active':''}" onclick="App.go('${k}')"><span class="ic">${ic}</span>${l}${badges[k]?`<span class="badge">${badges[k]}</span>`:''}</button>`).join('')
+    + `<button class="${moreActive?'active':''}" onclick="App.more()"><span class="ic">☰</span>עוד${moreBadge?`<span class="badge">${moreBadge}</span>`:''}</button>`;
+}
+
+function header(title, sub){ return `<h2>${title}</h2><div class="sub">${sub} · <span class="scope">${isMob()?`ממריץ/ה · ${esc(path(me().unitId))}`:`תחום אחריות: ${esc(path(me().unitId))}`}</span></div>`; }
+
+function vDash(){
+  const fid = S.focus && inScope(S.focus) ? S.focus : me().unitId;
+  const f = U(fid), ids = descIds(fid);
+  const to = turnoutOf(fid);
+  const openInc = S.incidents.filter(i=>ids.has(i.unitId) && i.status!=='resolved');
+  const crit = openInc.filter(i=>i.sev==='critical'||i.sev==='high');
+  const tasks = S.tasks.filter(t=>ids.has(t.unitId));
+  const overdue = tasks.filter(isOverdue);
+  const stations = desc(fid).filter(u=>u.type==='station');
+  const readySt = stations.filter(s=>{ const p=S.processes.filter(p=>p.unitId===s.id); return p.length && p.every(x=>procProgress(x)===100); }).length;
+  const crumbs = [...ancestors(fid).reverse().filter(u=>inScope(u.id)), f].map((u,i,a)=> i<a.length-1 ? `<button class="link" onclick="App.focus('${u.id}')">${esc(u.name)}</button> ›` : `<b>${esc(u.name)}</b>`).join(' ');
+  const ch = kids(fid);
+  const rows = ch.map(c => {
+    const ci = descIds(c.id), t = turnoutOf(c.id), r = readiness(c.id);
+    const oi = S.incidents.filter(i=>ci.has(i.unitId)&&i.status!=='resolved').length;
+    const od = S.tasks.filter(t=>ci.has(t.unitId)&&isOverdue(t)).length;
+    return `<tr><td>${kids(c.id).length?`<button class="link" onclick="App.focus('${c.id}')">${esc(c.name)}</button>`:esc(c.name)}</td>
+      <td>${esc(c.manager)}</td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="bar g" style="flex:1"><i style="width:${r}%"></i></div><span class="small">${r}%</span></div></td>
+      <td>${mobsIn(c.id).length} / ${votersIn(c.id).length}</td>
+      <td>${t.pct}%</td>
+      <td>${oi?`<span class="pill p-bad">${oi}</span>`:'<span class="muted">0</span>'}</td>
+      <td>${od?`<span class="pill p-warn">${od}</span>`:'<span class="muted">0</span>'}</td></tr>`;
+  }).join('');
+  const alerts = [
+    ...crit.map(i=>`<div class="alert" style="background:var(--bad-soft);color:var(--bad)">🚨 <b>${esc(U(i.unitId).name)}</b>: ${esc(i.title)}</div>`),
+    ...overdue.slice(0,5).map(t=>`<div class="alert" style="background:var(--warn-soft);color:var(--warn)">⏰ משימה באיחור — <b>${esc(U(t.unitId).name)}</b>: ${esc(t.title)}</div>`),
+  ].join('') || '<div class="empty">אין התראות פתוחות 👍</div>';
+  return header('לוח בקרה','תמונת מצב מבצעית לפי רמת ניהול') +
+  `<div class="crumbs">📍 ${crumbs}</div>
+  <div class="kpis">
+    <div class="kpi"><div class="l">קלפיות בתחום</div><div class="v">${stations.length}</div><div class="h">${to.voters.toLocaleString()} בעלי זכות בחירה</div></div>
+    <div class="kpi"><div class="l">מוכנות תהליכים</div><div class="v">${readiness(fid)}%</div><div class="h">${readySt} קלפיות מוכנות במלואן</div></div>
+    <div class="kpi"><div class="l">אחוז הצבעה</div><div class="v">${to.pct}%</div><div class="h">${to.reported}/${to.stations} קלפיות דיווחו</div></div>
+    <div class="kpi"><div class="l">אירועים פתוחים</div><div class="v" style="color:${openInc.length?'var(--bad)':'inherit'}">${openInc.length}</div><div class="h">${crit.length} בחומרה גבוהה</div></div>
+    <div class="kpi"><div class="l">משימות באיחור</div><div class="v" style="color:${overdue.length?'var(--warn)':'inherit'}">${overdue.length}</div><div class="h">מתוך ${tasks.filter(t=>t.status!=='done').length} פתוחות</div></div>
+    <div class="kpi"><div class="l">ממתינים לאישורי</div><div class="v">${pendingApprovals().length}</div><div class="h"><button class="link" onclick="App.go('appr')">למסך אישורים ←</button></div></div>
+  </div>
+  ${(() => { const cs = vStats(votersIn(fid)), ms = mobsIn(fid);
+    const top = ms.map(m=>({m,n:S.voters.filter(v=>v.mobId===m.id).length})).sort((a,b)=>b.n-a.n);
+    return `<div class="card"><h3>🤝 מטה הקמפיין — ${esc(S.candidate)} <button class="link" onclick="App.go('mob')">לכל הממריצים ←</button></h3>
+    <div class="kpis" style="margin-bottom:12px">
+      <div class="kpi"><div class="l">ממריצים</div><div class="v">${ms.length}</div><div class="h">${top.length?`${top[top.length-1].n}–${top[0].n} בוחרים לממריץ`:''}</div></div>
+      <div class="kpi"><div class="l">בוחרים פוטנציאליים</div><div class="v">${cs.total.toLocaleString()}</div></div>
+      <div class="kpi"><div class="l">תומכים</div><div class="v" style="color:var(--ok)">${cs.sup}</div><div class="h">${pct(cs.sup,cs.total)}% מהפוטנציאל</div></div>
+      <div class="kpi"><div class="l">נוצר קשר</div><div class="v">${pct(cs.contacted,cs.total)}%</div><div class="h">${cs.undecided} מתלבטים לשכנוע</div></div>
+      <div class="kpi"><div class="l">תומכים שהצביעו</div><div class="v">${cs.supVoted}/${cs.sup}</div><div class="h"><button class="link" onclick="App.go('gotv')">הוצאה להצבעה ←</button></div></div>
+    </div>${supBar(cs)}</div>`; })()}
+  <div class="grid2">
+    <div class="card"><h3>יחידות כפופות — ${esc(f.name)}</h3>${ch.length?`<div class="tbl"><table><tr><th>יחידה</th><th>אחראי/ת</th><th>מוכנות</th><th>ממריצים / בוחרים</th><th>הצבעה</th><th>אירועים</th><th>באיחור</th></tr>${rows}</table></div>`:'<div class="empty">אין יחידות כפופות</div>'}</div>
+    <div class="card"><h3>התראות</h3>${alerts}</div>
+  </div>`;
+}
+
+function vOrg(){
+  const node = u => `<div class="node">
+      <span>${{national:'🏛️',district:'🗺️',city:'🏙️',station:'🗳️'}[u.type]}</span>
+      <b>${esc(u.name)}</b><span class="pill p-mute">${TYPES[u.type].label}</span>
+      <span class="muted small">${esc(u.manager)} · ${esc(u.phone||'')}${u.voters?` · ${u.voters} בוחרים`:''}</span>
+      <span style="flex:1"></span>
+      <button class="btn sec sm" onclick="App.editUnit('${u.id}')">עריכה</button>
+      ${TYPES[u.type].child?`<button class="btn sm" onclick="App.addUnit('${u.id}')">+ ${TYPES[TYPES[u.type].child].label}</button>`:''}
+    </div>${kids(u.id).length?`<div class="kids">${kids(u.id).map(node).join('')}</div>`:''}`;
+  return header('מבנה ארגוני','היררכיית הניהול: מטה ארצי › מחוז › עיר › קלפי') + `<div class="card tree">${node(myUnit())}</div>`;
+}
+
+function vProc(){
+  const fT = S.procFilter || '';
+  const ids = descIds(me().unitId);
+  const list = S.processes.filter(p=>ids.has(p.unitId) && (!fT || p.templateId===fT));
+  const rows = list.map(p => {
+    const i = curStep(p), pr = procProgress(p), st = i<0 ? ['הושלם','p-ok'] : STEP_ST[p.steps[i].status];
+    return `<tr><td><button class="link" onclick="App.openProc('${p.id}')">${esc(p.name)}</button></td><td>${unitLabel(U(p.unitId))}</td>
+      <td>${i<0?'—':esc(p.steps[i].name)}</td><td><span class="pill ${st[1]}">${st[0]}</span></td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="bar ${pr===100?'g':''}" style="flex:1"><i style="width:${pr}%"></i></div><span class="small">${pr}%</span></div></td></tr>`;
+  }).join('');
+  const tpl = S.templates.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${TYPES[t.type].label}</td><td class="small muted">${t.steps.map(esc).join(' → ')}</td>
+     <td>${S.processes.filter(p=>p.templateId===t.id&&ids.has(p.unitId)).length}</td>
+     <td><button class="btn sm" onclick="App.launch('${t.id}')">הפעלה בתחומי</button></td></tr>`).join('');
+  return header('תהליכים','תהליכי עבודה רב־שלביים — כל שלב מבוצע ע״י היחידה ומאושר ע״י הדרג הממונה') +
+  `<div class="card"><h3>תבניות תהליך <button class="btn sm" onclick="App.newTemplate()">+ תבנית חדשה</button></h3>
+   <div class="tbl"><table><tr><th>שם</th><th>רמה</th><th>שלבים</th><th>מופעים</th><th></th></tr>${tpl}</table></div></div>
+   <div class="card"><h3>מופעי תהליך (${list.length})
+     <select onchange="App.setProcFilter(this.value)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface)"><option value="">כל התבניות</option>${S.templates.map(t=>`<option value="${t.id}" ${fT===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select></h3>
+   ${list.length?`<div class="tbl"><table><tr><th>תהליך</th><th>יחידה</th><th>שלב נוכחי</th><th>סטטוס</th><th>התקדמות</th></tr>${rows}</table></div>`:'<div class="empty">אין תהליכים בתחום</div>'}</div>`;
+}
+
+function vAppr(){
+  const list = pendingApprovals();
+  const rows = list.map(({p,i}) => `<tr><td>${esc(path(p.unitId))}</td><td>${esc(p.name)}</td><td><b>${i+1}. ${esc(p.steps[i].name)}</b><div class="small muted">${esc(p.steps[i].note)}</div></td>
+     <td class="small">${esc(p.steps[i].by)}<br>${p.steps[i].at?fmtTime(p.steps[i].at):''}</td>
+     <td style="white-space:nowrap"><button class="btn ok sm" onclick="App.decide('${p.id}',${i},'approved')">אישור</button> <button class="btn bad sm" onclick="App.decide('${p.id}',${i},'rejected')">דחייה</button> <button class="btn sec sm" onclick="App.openProc('${p.id}')">פירוט</button></td></tr>`).join('');
+  const ids = descIds(me().unitId);
+  const stuck = S.processes.filter(p=>ids.has(p.unitId) && p.unitId!==me().unitId).filter(p=>{const i=curStep(p); return i>=0 && p.steps[i].status==='rejected';});
+  return header('אישורים ופיקוח','שלבים שהוגשו ע״י יחידות כפופות וממתינים לאישור הדרג הממונה') +
+  `<div class="toolbar">${list.length?`<button class="btn ok" onclick="App.approveAll()">אישור כל ${list.length} השלבים</button>`:''}</div>
+  <div class="card"><h3>ממתינים לאישור (${list.length})</h3>${list.length?`<div class="tbl"><table><tr><th>יחידה</th><th>תהליך</th><th>שלב</th><th>הוגש ע״י</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין פריטים הממתינים לאישורך</div>'}</div>
+  <div class="card"><h3>נדחו וממתינים לתיקון (${stuck.length})</h3>${stuck.length?stuck.map(p=>`<div class="alert" style="background:var(--bad-soft)"><b>${esc(path(p.unitId))}</b> — ${esc(p.steps[curStep(p)].name)} <span class="small">(${esc(p.steps[curStep(p)].note)})</span></div>`).join(''):'<div class="empty">אין</div>'}</div>`;
+}
+
+function vTasks(){
+  const ids = descIds(me().unitId), fl = S.taskFilter || 'all';
+  let list = S.tasks.filter(t=>ids.has(t.unitId));
+  if (fl==='mine') list = list.filter(t=>t.unitId===me().unitId);
+  if (fl==='sent') list = list.filter(t=>t.byUnit===me().unitId);
+  if (fl==='overdue') list = list.filter(isOverdue);
+  if (fl==='open') list = list.filter(t=>t.status!=='done');
+  list.sort((a,b)=>(a.status==='done')-(b.status==='done') || (a.due||'').localeCompare(b.due||''));
+  const rows = list.map(t => {
+    const mine = t.unitId===me().unitId, sup = isAncestor(me().unitId,t.unitId);
+    return `<tr><td><b>${esc(t.title)}</b>${t.desc?`<div class="small muted">${esc(t.desc)}</div>`:''}</td>
+      <td>${unitLabel(U(t.unitId))}</td><td class="small">${esc(U(t.byUnit)?.name||'')}</td>
+      <td style="${isOverdue(t)?'color:var(--bad);font-weight:700':''}">${fmtDate(t.due)}${isOverdue(t)?' ⏰':''}</td>
+      <td><span class="pill ${PRIO[t.prio][1]}">${PRIO[t.prio][0]}</span></td>
+      <td><span class="pill ${TASK_ST[t.status][1]}">${TASK_ST[t.status][0]}</span></td>
+      <td style="white-space:nowrap">${mine&&t.status==='open'?`<button class="btn warn sm" onclick="App.taskSt('${t.id}','progress')">התחלה</button> `:''}
+        ${(mine||sup)&&t.status!=='done'?`<button class="btn ok sm" onclick="App.taskSt('${t.id}','done')">סיום</button>`:''}
+        ${sup&&t.status==='done'?`<button class="btn sec sm" onclick="App.taskSt('${t.id}','open')">פתיחה מחדש</button>`:''}</td></tr>`;
+  }).join('');
+  const opts = [['all','הכל'],['open','פתוחות'],['mine','של היחידה שלי'],['sent','שהוצאתי'],['overdue','באיחור']];
+  return header('משימות','הקצאת משימות לדרגים הכפופים ומעקב ביצוע') +
+  `<div class="toolbar">${TYPES[myUnit().type].child?`<button class="btn" onclick="App.newTask()">+ משימה חדשה</button>`:''}
+   ${opts.map(([k,l])=>`<button class="btn sm ${fl===k?'':'sec'}" onclick="App.setTaskFilter('${k}')">${l}</button>`).join('')}</div>
+  <div class="card">${list.length?`<div class="tbl"><table><tr><th>משימה</th><th>יחידה מבצעת</th><th>הוקצתה ע״י</th><th>יעד</th><th>עדיפות</th><th>סטטוס</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין משימות</div>'}</div>`;
+}
+
+function vInc(){
+  const ids = descIds(me().unitId);
+  const list = S.incidents.filter(i=>ids.has(i.unitId)).sort((a,b)=>(a.status==='resolved')-(b.status==='resolved') || Object.keys(PRIO).indexOf(b.sev)-Object.keys(PRIO).indexOf(a.sev));
+  const rows = list.map(i => {
+    const h = U(i.handlerId), canHandle = i.handlerId===me().unitId || isAncestor(me().unitId, i.handlerId);
+    return `<tr><td><button class="link" onclick="App.openInc('${i.id}')">${esc(i.title)}</button><div class="small muted">${fmtTime(i.createdAt)}</div></td>
+      <td>${esc(path(i.unitId))}</td><td><span class="pill ${PRIO[i.sev][1]}">${PRIO[i.sev][0]}</span></td>
+      <td>${i.status==='resolved'?'—':`${esc(h.name)} <span class="muted small">(${TYPES[h.type].label})</span>`}</td>
+      <td><span class="pill ${INC_ST[i.status][1]}">${INC_ST[i.status][0]}</span></td>
+      <td style="white-space:nowrap">${i.status!=='resolved'&&canHandle?`${h.parentId?`<button class="btn warn sm" onclick="App.escalate('${i.id}')">הסלמה ⬆</button> `:''}<button class="btn ok sm" onclick="App.resolve('${i.id}')">סגירה</button>`:''}</td></tr>`;
+  }).join('');
+  return header('אירועים וחריגות','דיווח תקלות מהשטח, הסלמה בין דרגים וסגירת אירועים') +
+  `<div class="toolbar"><button class="btn bad" onclick="App.newInc()">+ דיווח אירוע</button></div>
+  <div class="card">${list.length?`<div class="tbl"><table><tr><th>אירוע</th><th>מיקום</th><th>חומרה</th><th>דרג מטפל</th><th>סטטוס</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין אירועים</div>'}</div>`;
+}
+
+function vTurn(){
+  const sts = scopeUnits().filter(u=>u.type==='station'), to = turnoutOf(me().unitId);
+  const byHour = HOURS.map(h => sts.reduce((a,s)=>{ const r=(S.turnout[s.id]||[]).filter(x=>x.hour<=h); return a + (r.length?r[r.length-1].votes:0); },0));
+  const max = Math.max(to.voters,1);
+  const chart = `<div class="chart">${HOURS.map((h,i)=>`<div class="col"><span class="small">${pct(byHour[i],to.voters)}%</span><i style="height:${Math.max(2,byHour[i]*100/max)}%"></i><span class="small muted">${h}:00</span></div>`).join('')}</div>`;
+  const rows = sts.map(s => { const r=S.turnout[s.id]||[], l=r[r.length-1];
+    return `<tr><td><b>${esc(s.name)}</b><div class="small muted">${esc(s.address||'')}</div></td><td class="small">${esc(path(s.parentId))}</td><td>${s.voters}</td>
+      <td>${l?l.votes:'—'}</td><td>${l?`${pct(l.votes,s.voters)}%`:'—'}</td><td class="small">${l?`${l.hour}:00`:'<span class="pill p-warn">טרם דווח</span>'}</td>
+      <td><button class="btn sm" onclick="App.report('${s.id}')">דיווח</button></td></tr>`; }).join('');
+  return header('דיווחי הצבעה','דיווח שעתי של מספר המצביעים בכל קלפי — מצטבר אוטומטית לכל הדרגים') +
+  `<div class="kpis"><div class="kpi"><div class="l">אחוז הצבעה מצטבר</div><div class="v">${to.pct}%</div><div class="h">${to.votes.toLocaleString()} / ${to.voters.toLocaleString()}</div></div>
+   <div class="kpi"><div class="l">קלפיות שדיווחו</div><div class="v">${to.reported}/${to.stations}</div></div></div>
+  <div class="card"><h3>אחוז הצבעה מצטבר לפי שעה</h3>${chart}</div>
+  <div class="card"><h3>קלפיות</h3><div class="tbl"><table><tr><th>קלפי</th><th>שיוך</th><th>בעלי זכות</th><th>הצביעו</th><th>%</th><th>דיווח אחרון</th><th></th></tr>${rows}</table></div></div>`;
+}
+
+function vLog(){
+  return header('יומן פעולות','תיעוד מלא של כל הפעולות במערכת (Audit trail)') +
+  `<div class="card"><div class="tbl"><table><tr><th>זמן</th><th>משתמש</th><th>פעולה</th></tr>${S.log.map(l=>`<tr><td class="small" style="white-space:nowrap">${fmtTime(l.at)}</td><td class="small">${esc(l.by)}</td><td>${esc(l.text)}</td></tr>`).join('')}</table></div></div>`;
+}
+
+function vMob(){
+  const mobs = visibleMobs().map(m => ({m, st:vStats(S.voters.filter(v=>v.mobId===m.id))})).sort((a,b)=>b.st.total-a.st.total);
+  const counts = mobs.map(x=>x.st.total), tot = counts.reduce((a,b)=>a+b,0);
+  const rows = mobs.map(({m,st}) => `<tr>
+    <td><button class="link" onclick="App.showVoters('${m.id}')">${esc(m.name)}</button> <a href="tel:${esc(m.phone)}" class="small muted" style="direction:ltr">${esc(m.phone)}</a></td>
+    <td>${esc(U(m.unitId).name)}</td>
+    <td><div style="display:flex;gap:8px;align-items:center;min-width:140px"><div class="bar ${st.total>=m.target?'g':''}" style="flex:1"><i style="width:${Math.min(100,pct(st.total,m.target))}%"></i></div><b>${st.total}</b><span class="small muted">/ ${m.target}</span></div></td>
+    <td><span class="pill p-ok">${st.sup}</span></td>
+    <td><span class="pill p-warn">${st.undecided}</span></td>
+    <td>${pct(st.contacted,st.total)}%</td>
+    <td>${st.supVoted}/${st.sup}</td>
+    <td><button class="btn sec sm" onclick="App.editMob('${m.id}')">עריכה</button></td></tr>`).join('');
+  return header('ממריצים','כל ממריץ/ה אחראי/ת על קבוצת בוחרים פוטנציאליים בגודל משתנה — מעקב גיוס, שכנוע והוצאה להצבעה') +
+  `<div class="kpis">
+    <div class="kpi"><div class="l">ממריצים פעילים</div><div class="v">${mobs.length}</div></div>
+    <div class="kpi"><div class="l">בוחרים פוטנציאליים</div><div class="v">${tot.toLocaleString()}</div></div>
+    <div class="kpi"><div class="l">ממוצע לממריץ</div><div class="v">${mobs.length?Math.round(tot/mobs.length):0}</div><div class="h">טווח: ${counts.length?Math.min(...counts):0}–${counts.length?Math.max(...counts):0} בוחרים</div></div>
+    <div class="kpi"><div class="l">עמדו ביעד הגיוס</div><div class="v">${mobs.filter(x=>x.st.total>=x.m.target).length}/${mobs.length}</div></div>
+  </div>
+  <div class="toolbar"><button class="btn" onclick="App.addMob()">+ ממריץ/ה חדש/ה</button></div>
+  <div class="card">${mobs.length?`<div class="tbl"><table><tr><th>ממריץ/ה</th><th>עיר</th><th>בוחרים / יעד</th><th>תומכים</th><th>מתלבטים</th><th>נוצר קשר</th><th>הצביעו מהתומכים</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין ממריצים בתחום</div>'}</div>`;
+}
+
+function vVoters(mode){
+  const vf = S.vf || {}, all = visibleVoters(), gotv = mode==='gotv';
+  let list = gotv ? all.filter(v=>isSup(v) && !v.voted) : all;
+  if (!isMob() && vf.mob) list = list.filter(v=>v.mobId===vf.mob);
+  if (!gotv && vf.sup) list = list.filter(v=>v.support===vf.sup);
+  if (vf.flag==='nocontact') list = list.filter(v=>!v.contacted);
+  if (vf.flag==='ride') list = list.filter(v=>v.ride);
+  if (vf.q) list = list.filter(v=>(v.name+' '+v.phone).includes(vf.q));
+  if (gotv) list = [...list].sort((a,b)=>b.ride-a.ride);
+  const st = vStats(vf.mob && !isMob() ? all.filter(v=>v.mobId===vf.mob) : all);
+  const shown = list.slice(0,150);
+  const card = v => `<div class="vcard ${v.voted?'voted':''}">
+      <div class="vtop"><b>${esc(v.name)}</b><a href="tel:${esc(v.phone)}">📞 ${esc(v.phone)}</a></div>
+      <div class="small muted">${isMob()?'':`ממריץ/ה: ${esc(M(v.mobId)?.name||'—')} · `}${v.stationId&&U(v.stationId)?esc(U(v.stationId).name):'קלפי לא שובצה'}${v.note?` · ${esc(v.note)}`:''}</div>
+      <div class="vact">
+        <select onchange="App.vset('${v.id}','support',this.value)" style="color:${SUP[v.support][2]===('var(--border)')?'inherit':SUP[v.support][2]};font-weight:700">${Object.entries(SUP).map(([k,x])=>`<option value="${k}" ${k===v.support?'selected':''}>${x[0]}</option>`).join('')}</select>
+        <button class="chip ${v.contacted?'on':''}" onclick="App.vtoggle('${v.id}','contacted')">✓ נוצר קשר</button>
+        <button class="chip ${v.ride?'on':''}" onclick="App.vtoggle('${v.id}','ride')">🚗 הסעה</button>
+        <button class="chip ${v.voted?'on':''}" onclick="App.vtoggle('${v.id}','voted')">🗳️ הצביע/ה</button>
+        <button class="link small" onclick="App.editVoter('${v.id}')">עריכה</button>
+      </div></div>`;
+  const kp = gotv ? `
+    <div class="kpi"><div class="l">תומכים</div><div class="v">${st.sup}</div></div>
+    <div class="kpi"><div class="l">הצביעו</div><div class="v" style="color:var(--ok)">${st.supVoted}</div><div class="h">${pct(st.supVoted,st.sup)}% מהתומכים</div></div>
+    <div class="kpi"><div class="l">נותרו להוציא</div><div class="v" style="color:var(--bad)">${st.sup-st.supVoted}</div></div>
+    <div class="kpi"><div class="l">צריכים הסעה</div><div class="v">${all.filter(v=>isSup(v)&&!v.voted&&v.ride).length}</div></div>` : `
+    <div class="kpi"><div class="l">${isMob()?'הבוחרים שלי':'בוחרים פוטנציאליים'}</div><div class="v">${st.total}</div>${isMob()?`<div class="h">יעד: ${M(me().mobId).target}</div>`:''}</div>
+    <div class="kpi"><div class="l">תומכים</div><div class="v" style="color:var(--ok)">${st.sup}</div><div class="h">${pct(st.sup,st.total)}%</div></div>
+    <div class="kpi"><div class="l">נוצר קשר</div><div class="v">${pct(st.contacted,st.total)}%</div><div class="h">${st.total-st.contacted} טרם</div></div>
+    <div class="kpi"><div class="l">מתלבטים</div><div class="v" style="color:var(--warn)">${st.undecided}</div></div>`;
+  const sel = (k, opts, label) => `<select onchange="App.vf('${k}',this.value)"><option value="">${label}</option>${opts.map(([v,l])=>`<option value="${v}" ${vf[k]===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  return header(gotv?'הוצאה להצבעה':(isMob()?'הבוחרים שלי':'בוחרים'), gotv?'יום הבחירות: תומכים שטרם הצביעו — מסמנים "הצביע/ה" ברגע שהבוחר/ת הצביע/ה. בעלי צורך בהסעה מופיעים ראשונים':'ניהול בוחרים פוטנציאליים: סטטוס תמיכה, יצירת קשר, הסעות') +
+  `<div class="kpis">${kp}</div>
+  ${gotv?'':`<div class="card"><h3>התפלגות תמיכה</h3>${supBar(st)}</div>`}
+  <div class="toolbar">
+    <button class="btn" onclick="App.addVoter()">+ בוחר/ת</button>
+    ${isMob()||vf.mob?`<button class="btn sec" onclick="App.importVoters()">ייבוא רשימה</button>`:''}
+    <input type="search" placeholder="חיפוש שם / טלפון" value="${esc(vf.q||'')}" onchange="App.vf('q',this.value)">
+    ${isMob()?'':sel('mob', visibleMobs().map(m=>[m.id,`${m.name} (${U(m.unitId).name})`]), 'כל הממריצים')}
+    ${gotv?'':sel('sup', Object.entries(SUP).map(([k,x])=>[k,x[0]]), 'כל הסטטוסים')}
+    ${sel('flag', [['nocontact','טרם נוצר קשר'],['ride','צריכים הסעה']], 'ללא סינון נוסף')}
+  </div>
+  <div class="muted small" style="margin-bottom:8px">${list.length} בוחרים${list.length>150?' · מוצגים 150 הראשונים, צמצמו בעזרת סינון':''}</div>
+  ${shown.length?`<div class="vlist">${shown.map(card).join('')}</div>`:`<div class="card empty">${gotv?'כל התומכים הצביעו 🎉':'אין בוחרים תואמים'}</div>`}`;
+}
+
+/* ---------- actions ---------- */
+const unitOptions = (units, sel) => units.map(u=>`<option value="${u.id}" ${u.id===sel?'selected':''}>${'— '.repeat(TYPES[u.type].lvl - TYPES[myUnit().type].lvl)}${esc(u.name)} (${TYPES[u.type].label})</option>`).join('');
+
+window.App = {
+  go(v){ S.view=v; if(v==='dash') S.focus=null; save(); render(); window.scrollTo(0,0); },
+  focus(id){ S.focus=id; S.view='dash'; save(); render(); },
+  switchUser(id){ S.currentUser=id; S.focus=null; save(); render(); },
+  reset(){ if(confirm('לאפס את כל הנתונים לנתוני הדמו?')){ S=seed(); save(); render(); } },
+  more(){
+    const items = isMob() ? [] : [['gotv','🚀 הוצאה להצבעה'],['proc','🔄 תהליכים'],['inc','🚨 אירועים וחריגות'],['tasks','📋 משימות'],['turn','🗳️ דיווחי הצבעה'],['org','🏛️ מבנה ארגוני'],['log','📜 יומן פעולות']];
+    modal('תפריט', `<div class="sheet-list">${items.map(([k,l])=>`<button type="button" onclick="document.getElementById('dlg').close();App.go('${k}')">${l}</button>`).join('')}
+      ${isMob()?'':`<button type="button" onclick="document.getElementById('dlg').close();App.settings()">⚙️ הגדרות קמפיין</button>`}
+      <button type="button" onclick="document.getElementById('dlg').close();App.reset()">♻️ איפוס נתוני דמו</button></div>`, []);
+  },
+  settings(){
+    modal('הגדרות קמפיין', `
+      <label class="f"><span>שם המועמד/ת</span><input name="candidate" value="${esc(S.candidate)}" required></label>
+      <label class="f"><span>מועד הבחירות</span><input type="date" name="date" value="${S.electionDate}" required></label>`,
+      [{label:'שמירה', value:'ok', fn:d=>{ S.candidate=d.candidate; S.electionDate=d.date; log('עודכנו הגדרות הקמפיין'); }}]);
+  },
+
+  /* --- campaign: mobilizers & voters --- */
+  showVoters(mobId){ S.vf = {mob:mobId}; App.go('voters'); },
+  vf(k,v){ S.vf = {...(S.vf||{}), [k]:v}; save(); render(); },
+  vset(id,k,v){ const x=S.voters.find(y=>y.id===id); x[k]=v; if(k==='support') x.contacted=true; save(); render(); },
+  vtoggle(id,k){
+    const x=S.voters.find(y=>y.id===id); x[k]=!x[k];
+    if(k==='voted'){ x.votedAt = x.voted ? new Date().toISOString() : ''; log(`${x.name} ${x.voted?'סומן/ה כהצביע/ה':'— בוטל סימון הצבעה'} (ממריץ/ה: ${M(x.mobId)?.name})`); }
+    save(); render();
+  },
+  addMob(){
+    const cities = scopeUnits().filter(u=>u.type==='city');
+    modal('ממריץ/ה חדש/ה', `
+      <label class="f"><span>שם מלא</span><input name="name" required></label>
+      <label class="f"><span>טלפון</span><input name="phone" type="tel"></label>
+      <label class="f"><span>עיר / אזור</span><select name="unit">${cities.map(c=>`<option value="${c.id}">${esc(path(c.id))}</option>`).join('')}</select></label>
+      <label class="f"><span>יעד גיוס בוחרים</span><input type="number" name="target" min="1" value="30" required></label>`,
+      [{label:'הוספה', value:'ok', fn:d=>{
+        const m={id:uid(),name:d.name,phone:d.phone,unitId:d.unit,target:+d.target};
+        S.mobilizers.push(m); S.users.push({id:uid(),name:d.name,unitId:d.unit,mobId:m.id}); log(`נוסף/ה ממריץ/ה: ${d.name} (${U(d.unit).name})`);
+      }}]);
+  },
+  editMob(id){
+    const m=M(id), cities=scopeUnits().filter(u=>u.type==='city'), others=visibleMobs().filter(x=>x.id!==id), n=S.voters.filter(v=>v.mobId===id).length;
+    modal(`עריכת ממריץ/ה — ${m.name}`, `
+      <label class="f"><span>שם מלא</span><input name="name" value="${esc(m.name)}" required></label>
+      <label class="f"><span>טלפון</span><input name="phone" type="tel" value="${esc(m.phone)}"></label>
+      <label class="f"><span>עיר / אזור</span><select name="unit">${cities.map(c=>`<option value="${c.id}" ${c.id===m.unitId?'selected':''}>${esc(path(c.id))}</option>`).join('')}</select></label>
+      <label class="f"><span>יעד גיוס בוחרים</span><input type="number" name="target" min="1" value="${m.target}" required></label>
+      <label class="f"><span>בעת מחיקה — העברת ${n} הבוחרים אל</span><select name="moveTo">${others.map(o=>`<option value="${o.id}">${esc(o.name)} (${esc(U(o.unitId).name)})</option>`).join('')}</select></label>`,
+      [{label:'שמירה', value:'ok', fn:d=>{
+        Object.assign(m,{name:d.name,phone:d.phone,unitId:d.unit,target:+d.target});
+        const usr=S.users.find(u=>u.mobId===id); if(usr){usr.name=d.name; usr.unitId=d.unit;} log(`עודכנו פרטי ממריץ/ה: ${d.name}`);
+      }},
+      ...(others.length||!n ? [{label:'מחיקה והעברת בוחרים', cls:'bad', value:'del', novalidate:true, fn:d=>{
+        if(!confirm(`למחוק את ${m.name}${n?` ולהעביר ${n} בוחרים`:''}?`)) return false;
+        S.voters.forEach(v=>{ if(v.mobId===id) v.mobId=d.moveTo; });
+        S.mobilizers=S.mobilizers.filter(x=>x.id!==id); S.users=S.users.filter(u=>u.mobId!==id);
+        log(`נמחק/ה ממריץ/ה ${m.name}${n?`; ${n} בוחרים הועברו ל${M(d.moveTo)?.name}`:''}`);
+      }}]:[])]);
+  },
+  voterForm(v={}){
+    const mobs = visibleMobs(), defMob = v.mobId || (isMob()?me().mobId:(S.vf||{}).mob) || mobs[0]?.id;
+    const sts = desc(isMob()?me().unitId:me().unitId).filter(u=>u.type==='station');
+    return `<label class="f"><span>שם מלא</span><input name="name" value="${esc(v.name||'')}" required></label>
+      <label class="f"><span>טלפון</span><input name="phone" type="tel" value="${esc(v.phone||'')}"></label>
+      ${isMob()?'':`<label class="f"><span>ממריץ/ה אחראי/ת</span><select name="mobId">${mobs.map(m=>`<option value="${m.id}" ${m.id===defMob?'selected':''}>${esc(m.name)} (${esc(U(m.unitId).name)})</option>`).join('')}</select></label>`}
+      <label class="f"><span>קלפי</span><select name="stationId"><option value="">לא ידוע</option>${sts.map(s=>`<option value="${s.id}" ${s.id===v.stationId?'selected':''}>${esc(s.name)} — ${esc(U(s.parentId).name)}</option>`).join('')}</select></label>
+      <label class="f"><span>סטטוס תמיכה</span><select name="support">${Object.entries(SUP).map(([k,x])=>`<option value="${k}" ${k===(v.support||'unknown')?'selected':''}>${x[0]}</option>`).join('')}</select></label>
+      <label class="f"><span>הערה</span><input name="note" value="${esc(v.note||'')}"></label>`;
+  },
+  addVoter(){
+    if(!visibleMobs().length){ alert('יש להוסיף ממריץ/ה קודם'); return; }
+    modal('בוחר/ת חדש/ה', App.voterForm(), [{label:'הוספה', value:'ok', fn:d=>{
+      S.voters.push({id:uid(),name:d.name,phone:d.phone,mobId:isMob()?me().mobId:d.mobId,stationId:d.stationId,support:d.support,contacted:d.support!=='unknown',voted:false,ride:false,note:d.note});
+    }}]);
+  },
+  editVoter(id){
+    const v=S.voters.find(x=>x.id===id);
+    modal(`עריכת בוחר/ת — ${v.name}`, App.voterForm(v), [
+      {label:'שמירה', value:'ok', fn:d=>{ const old=v.mobId; Object.assign(v,{name:d.name,phone:d.phone,stationId:d.stationId,support:d.support,note:d.note}); if(!isMob()&&d.mobId){ v.mobId=d.mobId; if(old!==d.mobId) log(`${v.name} הועבר/ה מ${M(old)?.name} ל${M(d.mobId)?.name}`);} }},
+      {label:'מחיקה', cls:'bad', value:'del', novalidate:true, fn:()=>{ if(!confirm(`למחוק את ${v.name}?`)) return false; S.voters=S.voters.filter(x=>x.id!==id); }}]);
+  },
+  importVoters(){
+    const mobId = isMob() ? me().mobId : (S.vf||{}).mob, m = M(mobId);
+    modal(`ייבוא בוחרים — ${m.name}`, `<p class="small muted">שורה לכל בוחר/ת בפורמט: <b>שם, טלפון</b> (אפשר להדביק מאקסל)</p>
+      <label class="f"><span>רשימה</span><textarea name="list" rows="8" required placeholder="ישראל ישראלי, 050-1234567"></textarea></label>`,
+      [{label:'ייבוא', value:'ok', fn:d=>{
+        const rows=d.list.split('\n').map(l=>l.split(/[,\t;]/).map(x=>x.trim())).filter(r=>r[0]);
+        rows.forEach(r=>S.voters.push({id:uid(),name:r[0],phone:r[1]||'',mobId,stationId:'',support:'unknown',contacted:false,voted:false,ride:false,note:''}));
+        log(`יובאו ${rows.length} בוחרים לממריץ/ה ${m.name}`);
+      }}]);
+  },
+  setProcFilter(v){ S.procFilter=v; render(); },
+  setTaskFilter(v){ S.taskFilter=v; render(); },
+
+  addUnit(pid){
+    const p=U(pid), t=TYPES[p.type].child;
+    modal(`הוספת ${TYPES[t].label} תחת ${p.name}`, `
+      <label class="f"><span>שם</span><input name="name" required></label>
+      <label class="f"><span>${TYPES[t].role}</span><input name="manager" required></label>
+      <label class="f"><span>טלפון</span><input name="phone"></label>
+      ${t==='station'?`<label class="f"><span>מספר בעלי זכות בחירה</span><input type="number" name="voters" min="0" required></label><label class="f"><span>כתובת</span><input name="address"></label>`:''}`,
+      [{label:'הוספה', value:'ok', fn:d=>{
+        const u={id:uid(),name:d.name,type:t,parentId:pid,manager:d.manager,phone:d.phone,...(t==='station'?{voters:+d.voters,address:d.address}:{})};
+        S.units.push(u); S.users.push({id:uid(),name:d.manager,unitId:u.id});
+        S.templates.filter(x=>x.type===t && S.processes.some(p=>p.templateId===x.id && U(p.unitId)?.parentId===pid)).forEach(x=>S.processes.push(mkProc(x,u.id)));
+        log(`נוספה יחידה: ${d.name} תחת ${p.name}`);
+      }}]);
+  },
+  editUnit(id){
+    const u=U(id);
+    modal(`עריכת ${u.name}`, `
+      <label class="f"><span>שם</span><input name="name" value="${esc(u.name)}" required></label>
+      <label class="f"><span>${TYPES[u.type].role}</span><input name="manager" value="${esc(u.manager)}" required></label>
+      <label class="f"><span>טלפון</span><input name="phone" value="${esc(u.phone||'')}"></label>
+      ${u.type==='station'?`<label class="f"><span>בעלי זכות בחירה</span><input type="number" name="voters" value="${u.voters}"></label><label class="f"><span>כתובת</span><input name="address" value="${esc(u.address||'')}"></label>`:''}`,
+      [{label:'שמירה', value:'ok', fn:d=>{
+        const usr=S.users.find(x=>x.unitId===id);
+        Object.assign(u,{name:d.name,manager:d.manager,phone:d.phone}); if(u.type==='station'){u.voters=+d.voters;u.address=d.address;}
+        if(usr) usr.name=d.manager; log(`עודכנו פרטי יחידה: ${u.name}`);
+      }},
+      ...(id!==me().unitId && !kids(id).length && !S.mobilizers.some(m=>m.unitId===id) ? [{label:'מחיקת יחידה', cls:'bad', value:'del', novalidate:true, fn:()=>{
+        if(!confirm(`למחוק את ${u.name}?`)) return false;
+        S.units=S.units.filter(x=>x.id!==id); S.users=S.users.filter(x=>x.unitId!==id);
+        S.processes=S.processes.filter(p=>p.unitId!==id); S.tasks=S.tasks.filter(t=>t.unitId!==id); S.incidents=S.incidents.filter(i=>i.unitId!==id);
+        log(`נמחקה יחידה: ${u.name}`);
+      }}]:[])]);
+  },
+
+  newTemplate(){
+    modal('תבנית תהליך חדשה', `
+      <label class="f"><span>שם התהליך</span><input name="name" required></label>
+      <label class="f"><span>רמת יחידה מבצעת</span><select name="type">${Object.keys(TYPES).filter(t=>t!=='national').map(t=>`<option value="${t}">${TYPES[t].label}</option>`).join('')}</select></label>
+      <label class="f"><span>שלבים (שורה לכל שלב)</span><textarea name="steps" rows="6" required placeholder="שלב ראשון&#10;שלב שני&#10;אישור סופי"></textarea></label>`,
+      [{label:'יצירה', value:'ok', fn:d=>{
+        const steps=d.steps.split('\n').map(s=>s.trim()).filter(Boolean); if(!steps.length) return false;
+        S.templates.push({id:uid(),name:d.name,type:d.type,steps}); log(`נוצרה תבנית תהליך: ${d.name}`);
+      }}]);
+  },
+  launch(tid){
+    const t=S.templates.find(x=>x.id===tid);
+    const targets=scopeUnits().filter(u=>u.type===t.type && !S.processes.some(p=>p.templateId===tid && p.unitId===u.id));
+    if(!targets.length){ alert('התהליך כבר פעיל בכל היחידות הרלוונטיות בתחומך.'); return; }
+    if(!confirm(`להפעיל את "${t.name}" ב־${targets.length} יחידות (${TYPES[t.type].label})?`)) return;
+    targets.forEach(u=>S.processes.push(mkProc(t,u.id))); log(`הופעל תהליך "${t.name}" ב־${targets.length} יחידות`); save(); render();
+  },
+  openProc(id){
+    const p=S.processes.find(x=>x.id===id), cur=curStep(p), mine=p.unitId===me().unitId, sup=isAncestor(me().unitId,p.unitId);
+    const body = `<div class="muted small" style="margin-bottom:8px">${esc(path(p.unitId))}</div><ul class="steps">${p.steps.map((s,i)=>`
+      <li><span class="dot ${s.status}">${s.status==='approved'?'✓':i+1}</span><div style="flex:1">
+        <b>${esc(s.name)}</b> <span class="pill ${STEP_ST[s.status][1]}">${STEP_ST[s.status][0]}</span>
+        ${s.note?`<div class="small muted">💬 ${esc(s.note)}</div>`:''}${s.by?`<div class="small muted">${esc(s.by)} · ${s.at?fmtTime(s.at):''}</div>`:''}
+      </div></li>`).join('')}</ul>
+      ${cur>=0 && ((mine && s0(p,cur)!=='submitted') || (sup && s0(p,cur)==='submitted'))?`<label class="f" style="margin-top:10px"><span>הערה לשלב "${esc(p.steps[cur].name)}"</span><textarea name="note" rows="2"></textarea></label>`:''}`;
+    const btns=[];
+    if(cur>=0 && mine && s0(p,cur)!=='submitted') btns.push({label:'הגשה לאישור הדרג הממונה', value:'sub', fn:d=>stepSet(p,cur,'submitted',d.note)});
+    if(cur>=0 && sup && s0(p,cur)==='submitted'){ btns.push({label:'אישור', cls:'ok', value:'ap', fn:d=>stepSet(p,cur,'approved',d.note)}); btns.push({label:'דחייה', cls:'bad', value:'rj', fn:d=>stepSet(p,cur,'rejected',d.note||'נדחה')}); }
+    modal(p.name, body, btns);
+  },
+  decide(pid,i,st){
+    const p=S.processes.find(x=>x.id===pid);
+    const note = st==='rejected' ? prompt('סיבת הדחייה:') : '';
+    if(st==='rejected' && note===null) return;
+    stepSet(p,i,st,note||''); save(); render();
+  },
+  approveAll(){
+    const l=pendingApprovals(); if(!confirm(`לאשר ${l.length} שלבים?`)) return;
+    l.forEach(({p,i})=>stepSet(p,i,'approved','אישור מרוכז')); save(); render();
+  },
+
+  newTask(){
+    const sub=scopeUnits().filter(u=>u.id!==me().unitId);
+    const types=[...new Set(sub.map(u=>u.type))];
+    modal('משימה חדשה', `
+      <label class="f"><span>כותרת</span><input name="title" required></label>
+      <label class="f"><span>תיאור</span><textarea name="desc" rows="2"></textarea></label>
+      <label class="f"><span>יחידה מבצעת</span><select name="target">
+        <optgroup label="הפצה רוחבית">${types.map(t=>`<option value="all:${t}">כל ה${TYPES[t].label==='קלפי'?'קלפיות':TYPES[t].label==='מחוז'?'מחוזות':'ערים'} בתחומי (${sub.filter(u=>u.type===t).length})</option>`).join('')}</optgroup>
+        <optgroup label="יחידה בודדת">${unitOptions(sub)}</optgroup></select></label>
+      <label class="f"><span>תאריך יעד</span><input type="date" name="due" value="${addDays(3)}" required></label>
+      <label class="f"><span>עדיפות</span><select name="prio">${Object.entries(PRIO).map(([k,v])=>`<option value="${k}" ${k==='med'?'selected':''}>${v[0]}</option>`).join('')}</select></label>`,
+      [{label:'הקצאה', value:'ok', fn:d=>{
+        const tg = d.target.startsWith('all:') ? sub.filter(u=>u.type===d.target.slice(4)) : [U(d.target)];
+        tg.forEach(u=>S.tasks.push({id:uid(),title:d.title,desc:d.desc,unitId:u.id,byUnit:me().unitId,due:d.due,prio:d.prio,status:'open',createdAt:new Date().toISOString()}));
+        log(`הוקצתה משימה "${d.title}" ל־${tg.length} יחידות`);
+      }}]);
+  },
+  taskSt(id,st){ const t=S.tasks.find(x=>x.id===id); t.status=st; log(`משימה "${t.title}" (${U(t.unitId).name}) ← ${TASK_ST[st][0]}`); save(); render(); },
+
+  newInc(){
+    modal('דיווח אירוע / חריגה', `
+      <label class="f"><span>תיאור האירוע</span><input name="title" required></label>
+      <label class="f"><span>מיקום</span><select name="unit">${unitOptions(scopeUnits(), me().unitId)}</select></label>
+      <label class="f"><span>חומרה</span><select name="sev">${Object.entries(PRIO).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></label>
+      <p class="small muted">אירוע בחומרה קריטית מוסלם אוטומטית לדרג הממונה.</p>`,
+      [{label:'דיווח', cls:'bad', value:'ok', fn:d=>{
+        const u=U(d.unit), auto = d.sev==='critical' && u.parentId;
+        S.incidents.push({id:uid(),unitId:u.id,handlerId:auto?u.parentId:u.id,title:d.title,sev:d.sev,status:auto?'handling':'open',createdAt:new Date().toISOString(),
+          log:[{at:new Date().toISOString(),by:me().name,text:'נפתח אירוע'+(auto?' — הוסלם אוטומטית ל'+U(u.parentId).name:'')}]});
+        log(`דווח אירוע "${d.title}" ב${u.name}`);
+      }}]);
+  },
+  openInc(id){
+    const i=S.incidents.find(x=>x.id===id);
+    modal(i.title, `<div class="small muted">${esc(path(i.unitId))}</div>
+      <p><span class="pill ${PRIO[i.sev][1]}">${PRIO[i.sev][0]}</span> <span class="pill ${INC_ST[i.status][1]}">${INC_ST[i.status][0]}</span> · דרג מטפל: <b>${esc(U(i.handlerId).name)}</b></p>
+      <ul class="steps">${i.log.map(l=>`<li><span class="dot">•</span><div><div>${esc(l.text)}</div><div class="small muted">${esc(l.by)} · ${fmtTime(l.at)}</div></div></li>`).join('')}</ul>
+      ${i.status!=='resolved'?`<label class="f"><span>עדכון / הערה</span><textarea name="note" rows="2"></textarea></label>`:''}`,
+      i.status!=='resolved'?[{label:'הוספת עדכון', value:'ok', fn:d=>{ if(!d.note) return false; i.log.push({at:new Date().toISOString(),by:me().name,text:d.note}); if(i.status==='open') i.status='handling'; }}]:[]);
+  },
+  escalate(id){
+    const i=S.incidents.find(x=>x.id===id), h=U(i.handlerId), p=U(h.parentId);
+    i.handlerId=p.id; i.status='handling'; i.log.push({at:new Date().toISOString(),by:me().name,text:`הוסלם מ${h.name} ל${p.name}`});
+    log(`אירוע "${i.title}" הוסלם ל${p.name}`); save(); render();
+  },
+  resolve(id){
+    const i=S.incidents.find(x=>x.id===id), n=prompt('סיכום הטיפול:'); if(n===null) return;
+    i.status='resolved'; i.log.push({at:new Date().toISOString(),by:me().name,text:'נסגר: '+(n||'טופל')}); log(`אירוע "${i.title}" נסגר`); save(); render();
+  },
+
+  report(sid){
+    const s=U(sid), r=S.turnout[sid]||[], l=r[r.length-1];
+    const nextH = HOURS.find(h=>!l||h>l.hour) || 22;
+    modal(`דיווח הצבעה — ${s.name}`, `
+      <p class="muted small">${esc(s.address||'')} · ${s.voters} בעלי זכות בחירה${l?` · דיווח אחרון: ${l.votes} ב־${l.hour}:00`:''}</p>
+      <label class="f"><span>שעה</span><select name="hour">${HOURS.map(h=>`<option ${h===nextH?'selected':''}>${h}</option>`).join('')}</select></label>
+      <label class="f"><span>מספר מצביעים מצטבר</span><input type="number" name="votes" min="${l?l.votes:0}" max="${s.voters}" required></label>`,
+      [{label:'שליחת דיווח', value:'ok', fn:d=>{
+        const arr=(S.turnout[sid]=S.turnout[sid]||[]).filter(x=>x.hour!==+d.hour);
+        arr.push({hour:+d.hour,votes:+d.votes,by:me().name,at:new Date().toISOString()}); arr.sort((a,b)=>a.hour-b.hour); S.turnout[sid]=arr;
+        log(`דיווח הצבעה ${s.name}: ${d.votes} מצביעים עד ${d.hour}:00`);
+      }}]);
+  },
+};
+
+const s0 = (p,i) => p.steps[i].status;
+function mkProc(t, unitId){ return {id:uid(),templateId:t.id,name:t.name,unitId,steps:t.steps.map(n=>({name:n,status:'pending',note:'',by:'',at:''})),createdAt:new Date().toISOString()}; }
+function stepSet(p,i,status,note){
+  Object.assign(p.steps[i],{status,note:note||p.steps[i].note,by:`${me().name} (${myUnit().name})`,at:new Date().toISOString()});
+  log(`${U(p.unitId).name} · "${p.name}" · שלב "${p.steps[i].name}" ← ${STEP_ST[status][0]}`);
+}
+
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
