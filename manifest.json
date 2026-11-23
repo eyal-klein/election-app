@@ -1,6 +1,6 @@
 {
-  "name": "מערכת ניהול בחירות",
-  "short_name": "ניהול בחירות",
+  "name": "מטה רועי יעקב – הבחירות ליו״ר ההסתדרות",
+  "short_name": "מטה רועי יעקב",
   "lang": "he",
   "dir": "rtl",
   "start_url": "./index.html",
@@ -10,8 +10,21 @@
   "background_color": "#f5f9fe",
   "theme_color": "#062047",
   "icons": [
-    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"},
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ניהול בחירות">
+<meta name="apple-mobile-web-app-title" content="מטה רועי יעקב">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>מערכת ניהול בחירות</title>
+<title>מטה רועי יעקב</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -104,6 +104,10 @@ header .muted{color:var(--on-navy-muted)}
 header .btn.sec{background:transparent;color:var(--on-navy);border-color:rgba(165,201,255,.5)}
 .scope{font-size:12px;color:var(--muted)}
 #tabbar{display:none}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:40px;height:40px;border-radius:10px;box-shadow:0 0 0 2px rgba(29,186,244,.5)}
+.brand h1{line-height:1.1}
+.brand .tag{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.2px}
 dialog .hd .link{color:var(--on-navy);font-size:18px}
 #tabbar button.active .ic{transform:scale(1.1)}
 .vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
@@ -163,7 +167,7 @@ dialog .hd .link{color:var(--on-navy);font-size:18px}
 </head>
 <body>
 <header>
-  <h1 id="appTitle">🗳️ מערכת ניהול בחירות</h1>
+  <div class="brand"><img src="icon.svg" alt=""><div><h1 id="appTitle">מטה רועי יעקב</h1><div class="tag">הבחירות ליו״ר ההסתדרות</div></div></div>
   <span class="countdown" id="countdown"></span>
   <span class="sp"></span>
   <div class="userbox">
@@ -254,7 +258,7 @@ function seed(){
   return s;
 }
 function seedCampaign(s){
-  s.candidate = s.candidate || 'מועמד/ת לדוגמה';
+  s.candidate = s.candidate || 'רועי יעקב';
   s.mobilizers = []; s.voters = [];
   const F = ['אורי','בתיה','גיל','דבורה','הדס','ויקטור','זיו','חנה','טל','יונתן','כרמית','לירון','מרים','נתן','סיון','עדי','פנינה','צחי','קובי','רחל','שלמה','תומר','אלה','בני','גאיה','דוד','הראל','יפית','מוטי','נגה'];
   const L = ['לוי','כהן','מזרחי','פרץ','ביטון','אברהם','פרידמן','דהן','אזולאי','שפירא','חדד','גבאי','אוחיון','בן דוד','רוזן','קליין','עמר','סויסה'];
@@ -274,6 +278,7 @@ function seedCampaign(s){
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch(e){ S = seed(); }
 if (!S.mobilizers) seedCampaign(S);
+if (!S.candidate || S.candidate==='מועמד/ת לדוגמה') S.candidate = 'רועי יעקב';
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
 
 /* ---------- hierarchy helpers ---------- */
@@ -350,7 +355,7 @@ function render(){
   const daysLeft = Math.ceil((new Date(S.electionDate) - new Date(TODAY))/864e5);
   document.getElementById('countdown').textContent = daysLeft>0 ? `${daysLeft} ימים ליום הבחירות (${fmtDate(S.electionDate)})` : daysLeft===0 ? 'היום יום הבחירות' : 'הבחירות הסתיימו';
   const sel = document.getElementById('userSel');
-  document.getElementById('appTitle').textContent = `🗳️ מטה ${S.candidate}`;
+  document.getElementById('appTitle').textContent = `מטה ${S.candidate}`;
   sel.innerHTML = Object.keys(TYPES).map(t => `<optgroup label="${TYPES[t].role}">` + S.users.filter(u=>!u.mobId && U(u.unitId)?.type===t).map(u=>`<option value="${u.id}" ${u.id===S.currentUser?'selected':''}>${esc(u.name)} — ${esc(U(u.unitId).name)}</option>`).join('') + '</optgroup>').join('')
     + `<optgroup label="ממריצים">` + S.users.filter(u=>u.mobId).map(u=>`<option value="${u.id}" ${u.id===S.currentUser?'selected':''}>${esc(u.name)} — ממריץ/ה, ${esc(U(u.unitId)?.name||'')}</option>`).join('') + '</optgroup>';
   const views = isMob() ? VIEWS_MOB : VIEWS;
