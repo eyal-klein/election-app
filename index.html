@@ -85,6 +85,16 @@ tr:last-child td{border-bottom:0}
 .steps li:last-child{border:0}
 .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;flex-shrink:0;background:var(--surface2);color:var(--muted)}
 .dot.approved{background:var(--ok);color:#fff}.dot.submitted{background:var(--warn);color:#fff}.dot.rejected{background:var(--bad);color:#fff}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.hdiag{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.hrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.hbox{border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface2);text-align:center}
+.hbox b{color:var(--heading)}.hbox.mem{background:var(--primary-soft)}.hbox.top{border-color:var(--primary);border-width:2px}.hbox.w{border-color:#c2185b}
+.harr{text-align:center;font-weight:700;color:var(--muted);font-size:13px}
+ul.plain{margin:6px 0;padding-right:18px;line-height:1.8}
+.ballot{position:relative}.ballot .bn{position:absolute;top:12px;left:12px;font-size:12px;font-weight:800;color:var(--muted)}
+.ballot .pv{font-size:38px;font-weight:800;line-height:1.1;margin-top:6px}.ballot.w{border-top:4px solid #c2185b}
+.vtag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--surface2);margin-inline-start:4px}
 .alert{padding:9px 12px;border-radius:8px;margin-bottom:8px;font-size:14px}
 .empty{padding:24px;text-align:center;color:var(--muted)}
 dialog{border:0;border-radius:14px;padding:0;width:min(560px,94vw);background:var(--surface);color:var(--text);box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -162,7 +172,7 @@ dialog .hd .link{color:var(--on-navy);font-size:18px}
   nav{display:none}
   main{padding:14px 14px 20px}
   h2{font-size:20px}.sub{font-size:13px;margin-bottom:14px}
-  .grid2{grid-template-columns:1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
   .kpis{grid-template-columns:1fr 1fr;gap:10px}
   .kpi{padding:12px}.kpi .v{font-size:24px}
   .card{padding:12px;border-radius:14px}
@@ -221,7 +231,7 @@ const TODAY = new Date().toISOString().slice(0,10);
 const TYPES = {
   national:{label:'מטה ארצי', role:'מנהל/ת ארצי/ת', child:'district', lvl:0},
   district:{label:'מחוז', role:'מנהל/ת מחוז', child:'city', lvl:1},
-  city:{label:'עיר / אזור', role:'רכז/ת עיר', child:'station', lvl:2},
+  city:{label:'מרחב', role:'רכז/ת מרחב', child:'station', lvl:2},
   station:{label:'קלפי', role:'אחראי/ת קלפי', child:null, lvl:3},
 };
 const STEP_ST = {pending:['ממתין','p-mute'], submitted:['הוגש לאישור','p-warn'], approved:['אושר','p-ok'], rejected:['נדחה','p-bad']};
@@ -231,7 +241,19 @@ const INC_ST = {open:['פתוח','p-bad'], handling:['בטיפול','p-warn'], r
 const HOURS = [8,10,12,14,16,18,20,22];
 const SUP = {support:['תומך/ת','p-ok','var(--ok)'], leaning:['נוטה לתמוך','p-info','var(--info)'], undecided:['מתלבט/ת','p-warn','var(--warn)'], against:['לא תומך/ת','p-bad','var(--bad)'], unknown:['לא ידוע','p-mute','var(--border)']};
 const isSup = v => v.support==='support' || v.support==='leaning';
-const MODEL0 = {eligible:3000, turnout:40, organic:22, rival:38, wSupport:85, wLeaning:60, wUndecided:25, wUnknown:15, sigma:4};
+const MODEL0 = {eligible:600000, turnout:42, organic:48, rival:49, wSupport:85, wLeaning:60, wUndecided:25, wUnknown:15, sigma:3, listCarry:85};
+const ELECTION_DATE = '2027-06-08';
+const ELIG = {ok:['זכאי/ת להצביע','p-ok',1], dues:['חסר מס חבר','p-warn',.5], no:['לא זכאי/ת','p-bad',0]};
+const UNIONS = ['הסתדרות המעו״ף','הסתדרות האחיות','איגוד המהנדסים','איגוד עובדי התחבורה','עובדי הבניין והעץ','עובדי המזון והפארמה','הסתדרות הפסיכולוגים','איגוד העובדים הסוציאליים','הטכנאים וההנדסאים','מלונאות, חקלאות וכימיה','אקדמאים במדעי החברה והרוח','עובדי התעשייה','אקדמאים בשירות הציבורי (UAEA)','עובדי צה״ל האזרחיים','סלולר, אינטרנט והייטק','הנוער העובד והלומד','איגוד הגמלאים','מקצועות הבריאות','קציני הים','הרנטגנאים','המיקרוביולוגים והמעבדות','הרוקחים','נעמ״ת','סגל המחקר','איגוד עורכי הדין','שמירה, ניקיון וסיעוד'];
+const WORKPLACES = ['בית החולים','העירייה','הנמל','מפעל התעשייה','רשת המזון','חברת התקשורת','המכללה','המשרד הממשלתי','חברת האוטובוסים','בית האבות','מתנ״ס','מרכז הלוגיסטיקה'];
+function histVoter(v, city){
+  const r = Math.random();
+  v.union = UNIONS[r<.3?0:r<.42?1:r<.5?11:rnd(2,UNIONS.length-1)];
+  v.workplace = `${WORKPLACES[rnd(0,WORKPLACES.length-1)]} ${String(city||'').replace('מרחב ','')}`.trim();
+  v.female = Math.random()<.5;
+  const e = Math.random(); v.elig = e<.8?'ok':e<.94?'dues':'no';
+  return v;
+}
 const SLOGAN0 = 'הסתדרות שעובדת בשבילך';
 const REWARDS0 = () => [
   {id:uid(), name:'🍽️ ארוחת ערב עם רועי', cond:'rank', val:1},
@@ -251,19 +273,19 @@ const addDays = n => { const d = new Date(); d.setDate(d.getDate()+n); return d.
 
 /* ---------- seed ---------- */
 function seed(){
-  const s = {units:[],users:[],templates:[],processes:[],tasks:[],incidents:[],turnout:{},log:[],electionDate:addDays(22),view:'dash',focus:null};
+  const s = {units:[],users:[],templates:[],processes:[],tasks:[],incidents:[],turnout:{},log:[],electionDate:ELECTION_DATE,view:'dash',focus:null};
   const first = ['רונית','אבי','מיכל','יוסי','נועה','דני','שרה','עומר','תמר','איתי','הילה','גלעד','מאיה','רועי','ליאת','אסף','ענבל','משה','דנה','עידו','קרן','אלון','רותם','חן','יעל','ניר','שירה','אמיר'];
   const last = ['לוי','כהן','מזרחי','פרץ','ביטון','אברהם','פרידמן','דהן','אזולאי','שפירא','חדד','גבאי'];
   let ni = 0; const nm = () => `${first[ni++ % first.length]} ${last[rnd(0,last.length-1)]}`;
   const add = (name,type,parentId,extra={}) => { const u={id:uid(),name,type,parentId,manager:nm(),phone:'05'+rnd(0,9)+'-'+rnd(1000000,9999999),...extra}; s.units.push(u); return u; };
   const nat = add('מטה ארצי','national',null);
-  const map = {'מחוז צפון':['חיפה','נצרת'],'מחוז מרכז':['תל אביב','פתח תקווה'],'מחוז דרום':['באר שבע','אשדוד']};
+  const map = {'מחוז צפון':['מרחב חיפה','מרחב נצרת'],'מחוז מרכז':['מרחב תל אביב-יפו','מרחב פתח תקווה'],'מחוז דרום':['מרחב באר שבע','מרחב אשדוד']};
   let st = 101;
   for (const [d,cities] of Object.entries(map)){
     const du = add(d,'district',nat.id);
     for (const c of cities){
       const cu = add(c,'city',du.id);
-      for (let i=0;i<3;i++){ add(`קלפי ${st}`,'station',cu.id,{voters:rnd(550,900),address:`בית ספר ${['אלון','הדר','רמז','גפן','ארזים'][rnd(0,4)]}, ${c}`}); st++; }
+      for (let i=0;i<3;i++){ add(`קלפי ${st}`,'station',cu.id,{voters:rnd(550,900),address:`בית ספר ${['אלון','הדר','רמז','גפן','ארזים'][rnd(0,4)]}, ${c.replace('מרחב ','')}`}); st++; }
     }
   }
   s.users = s.units.map(u => ({id:uid(), name:u.manager, unitId:u.id}));
@@ -295,7 +317,7 @@ function seed(){
   mkInc(sts[14],'בעיית תאורה בתא ההצבעה','low','resolved');
   s.log.push({at:new Date().toISOString(), by:'מערכת', text:'נוצרו נתוני דמו'});
   seedCampaign(s);
-  s.model = {...MODEL0}; s.slogan = SLOGAN0; s.rewards = REWARDS0(); seedFeed(s); seedHistory(s);
+  s.model = {...MODEL0}; s.slogan = SLOGAN0; s.histV = 1; s.listName = `${s.candidate} — ${SLOGAN0}`; s.naamatList = `נשים עם ${s.candidate}`; s.rewards = REWARDS0(); seedFeed(s); seedHistory(s);
   return s;
 }
 function seedCampaign(s){
@@ -315,14 +337,25 @@ function seedCampaign(s){
         s.voters.push({id:uid(), name:nm(), phone:ph(), mobId:m.id, stationId:sts.length?sts[rnd(0,sts.length-1)].id:'', support:supW[rnd(0,9)], contacted:Math.random()<.6, voted:false, ride:Math.random()<.12, note:''});
     }
   });
+  s.voters.forEach(v => histVoter(v, s.units.find(u=>u.id===s.mobilizers.find(m=>m.id===v.mobId)?.unitId)?.name));
 }
 let S;
+const U0 = id => S.units.find(u=>u.id===id), M0 = id => (S.mobilizers||[]).find(m=>m.id===id);
 try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch(e){ S = seed(); }
 if (!S.mobilizers) seedCampaign(S);
 if (!S.candidate || S.candidate==='מועמד/ת לדוגמה') S.candidate = 'רועי יעקב';
 if (!S.model){ S.model = {...MODEL0}; seedFeed(S); seedHistory(S); }
 if (!S.slogan) S.slogan = SLOGAN0;
 if (!S.rewards) S.rewards = REWARDS0();
+if (!S.histV){ // migrate to the Histadrut structure
+  S.units.filter(u=>u.type==='city' && !u.name.startsWith('מרחב')).forEach(u => u.name = 'מרחב ' + u.name);
+  S.voters.forEach(v => { if (!v.union) histVoter(v, U0(M0(v.mobId)?.unitId)?.name); });
+  S.electionDate = ELECTION_DATE;
+  Object.assign(S.model, {eligible:600000, turnout:42, organic:48, rival:49, sigma:3, listCarry:85});
+  S.histV = 1; seedHistory(S);
+}
+if (!S.listName) S.listName = `${S.candidate} — ${S.slogan}`;
+if (!S.naamatList) S.naamatList = `נשים עם ${S.candidate}`;
 const save = () => { try { snapshot(); checkRewards(); } catch(e){ console.error(e); } try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
 
 /* ---------- hierarchy helpers ---------- */
@@ -391,8 +424,8 @@ document.getElementById('dlgForm').addEventListener('submit', e => {
 /* ---------- views ---------- */
 const VIEWS_MOB = [['voters','👥 הבוחרים שלי'],['rank','🏆 הדירוג שלי'],['gotv','🚀 הוצאה להצבעה']];
 const VIEWS = [
-  ['dash','📊 לוח בקרה'],['live','📡 חדר מצב'],['rank','🏆 דירוג ממריצים'],['mob','🤝 ממריצים'],['voters','👥 בוחרים'],['gotv','🚀 הוצאה להצבעה'],['org','🏛️ מבנה ארגוני'],['proc','🔄 תהליכים'],['appr','✅ אישורים ופיקוח'],
-  ['tasks','📋 משימות'],['inc','🚨 אירועים וחריגות'],['turn','🗳️ דיווחי הצבעה'],['log','📜 יומן פעולות']
+  ['dash','📊 לוח בקרה'],['live','📡 חדר מצב'],['rank','🏆 דירוג ממריצים'],['mob','🤝 ממריצים'],['voters','👥 בוחרים'],['gotv','🚀 הוצאה להצבעה'],['hist','🏛️ מבנה ההסתדרות'],['ballot','🗳️ שלוש ההצבעות'],['org','🧭 מבנה המטה'],['proc','🔄 תהליכים'],['appr','✅ אישורים ופיקוח'],
+  ['tasks','📋 משימות'],['inc','🚨 אירועים וחריגות'],['turn','📈 דיווחי הצבעה'],['log','📜 יומן פעולות']
 ];
 
 function render(){
@@ -414,7 +447,7 @@ function render(){
   if (isMob()) { badges.appr = badges.tasks = badges.inc = 0; }
   badges.gotv = visibleVoters().filter(v=>isSup(v)&&!v.voted).length && new Date(TODAY) >= new Date(S.electionDate) ? visibleVoters().filter(v=>isSup(v)&&!v.voted).length : 0;
   document.getElementById('nav').innerHTML = views.map(([k,l]) => `<button class="${S.view===k?'active':''}" onclick="App.go('${k}')"><span>${l}</span>${badges[k]?`<span class="badge">${badges[k]}</span>`:''}</button>`).join('');
-  const fn = {dash:vDash, live:vLive, rank:vRank, mob:vMob, voters:()=>vVoters('all'), gotv:()=>vVoters('gotv'), org:vOrg, proc:vProc, appr:vAppr, tasks:vTasks, inc:vInc, turn:vTurn, log:vLog}[S.view] || vDash;
+  const fn = {dash:vDash, live:vLive, rank:vRank, mob:vMob, voters:()=>vVoters('all'), gotv:()=>vVoters('gotv'), org:vOrg, hist:vHist, ballot:vBallot, proc:vProc, appr:vAppr, tasks:vTasks, inc:vInc, turn:vTurn, log:vLog}[S.view] || vDash;
   document.getElementById('main').innerHTML = fn();
   // label table cells so they can render as stacked cards on mobile
   document.querySelectorAll('#main .tbl table').forEach(tb => {
@@ -493,7 +526,7 @@ function vOrg(){
       <button class="btn sec sm" onclick="App.editUnit('${u.id}')">עריכה</button>
       ${TYPES[u.type].child?`<button class="btn sm" onclick="App.addUnit('${u.id}')">+ ${TYPES[TYPES[u.type].child].label}</button>`:''}
     </div>${kids(u.id).length?`<div class="kids">${kids(u.id).map(node).join('')}</div>`:''}`;
-  return header('מבנה ארגוני','היררכיית הניהול: מטה ארצי › מחוז › עיר › קלפי') + `<div class="card tree">${node(myUnit())}</div>`;
+  return header('מבנה המטה','היררכיית הניהול: מטה ארצי › מחוז › מרחב › קלפי — המרחבים מקבילים למרחבי ההסתדרות') + `<div class="card tree">${node(myUnit())}</div>`;
 }
 
 function vProc(){
@@ -613,7 +646,7 @@ function vMob(){
     <div class="kpi"><div class="l">עמדו ביעד הגיוס</div><div class="v">${mobs.filter(x=>x.st.total>=x.m.target).length}/${mobs.length}</div></div>
   </div>
   <div class="toolbar"><button class="btn" onclick="App.addMob()">+ ממריץ/ה חדש/ה</button></div>
-  <div class="card">${mobs.length?`<div class="tbl"><table><tr><th>ממריץ/ה</th><th>עיר</th><th>בוחרים / יעד</th><th>תומכים</th><th>מתלבטים</th><th>נוצר קשר</th><th>הצביעו מהתומכים</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין ממריצים בתחום</div>'}</div>`;
+  <div class="card">${mobs.length?`<div class="tbl"><table><tr><th>ממריץ/ה</th><th>מרחב</th><th>בוחרים / יעד</th><th>תומכים</th><th>מתלבטים</th><th>נוצר קשר</th><th>הצביעו מהתומכים</th><th></th></tr>${rows}</table></div>`:'<div class="empty">אין ממריצים בתחום</div>'}</div>`;
 }
 
 function vVoters(mode){
@@ -623,12 +656,16 @@ function vVoters(mode){
   if (!gotv && vf.sup) list = list.filter(v=>v.support===vf.sup);
   if (vf.flag==='nocontact') list = list.filter(v=>!v.contacted);
   if (vf.flag==='ride') list = list.filter(v=>v.ride);
-  if (vf.q) list = list.filter(v=>(v.name+' '+v.phone).includes(vf.q));
+  if (vf.q) list = list.filter(v=>(v.name+' '+v.phone+' '+(v.workplace||'')).includes(vf.q));
+  if (vf.union) list = list.filter(v=>v.union===vf.union);
+  if (vf.elig) list = list.filter(v=>(v.elig||'ok')===vf.elig);
+  if (vf.female) list = list.filter(v=>v.female);
   if (gotv) list = [...list].sort((a,b)=>b.ride-a.ride);
   const st = vStats(vf.mob && !isMob() ? all.filter(v=>v.mobId===vf.mob) : all);
   const shown = list.slice(0,150);
   const card = v => `<div class="vcard ${v.voted?'voted':''}">
       <div class="vtop"><b>${esc(v.name)}</b><a href="tel:${esc(v.phone)}">📞 ${esc(v.phone)}</a></div>
+      <div class="small muted">${v.union?`<span class="vtag">${esc(v.union)}</span>`:''}${v.workplace?`<span class="vtag">🏢 ${esc(v.workplace)}</span>`:''}${v.female?'<span class="vtag">נעמ״ת</span>':''}${v.elig&&v.elig!=='ok'?`<span class="pill ${ELIG[v.elig][1]}">${ELIG[v.elig][0]}</span>`:''}</div>
       <div class="small muted">${isMob()?'':`ממריץ/ה: ${esc(M(v.mobId)?.name||'—')} · `}${v.stationId&&U(v.stationId)?esc(U(v.stationId).name):'קלפי לא שובצה'}${v.note?` · ${esc(v.note)}`:''}</div>
       <div class="vact">
         <select onchange="App.vset('${v.id}','support',this.value)" style="color:${SUP[v.support][2]===('var(--border)')?'inherit':SUP[v.support][2]};font-weight:700">${Object.entries(SUP).map(([k,x])=>`<option value="${k}" ${k===v.support?'selected':''}>${x[0]}</option>`).join('')}</select>
@@ -655,13 +692,117 @@ function vVoters(mode){
   <div class="toolbar">
     <button class="btn" onclick="App.addVoter()">+ בוחר/ת</button>
     ${isMob()||vf.mob?`<button class="btn sec" onclick="App.importVoters()">ייבוא רשימה</button>`:''}
-    <input type="search" placeholder="חיפוש שם / טלפון" value="${esc(vf.q||'')}" onchange="App.vf('q',this.value)">
+    <input type="search" placeholder="חיפוש שם / טלפון / מקום עבודה" value="${esc(vf.q||'')}" onchange="App.vf('q',this.value)">
     ${isMob()?'':sel('mob', visibleMobs().map(m=>[m.id,`${m.name} (${U(m.unitId).name})`]), 'כל הממריצים')}
     ${gotv?'':sel('sup', Object.entries(SUP).map(([k,x])=>[k,x[0]]), 'כל הסטטוסים')}
     ${sel('flag', [['nocontact','טרם נוצר קשר'],['ride','צריכים הסעה']], 'ללא סינון נוסף')}
+    ${sel('union', [...new Set(all.map(v=>v.union).filter(Boolean))].sort().map(u=>[u,u]), 'כל האיגודים')}
+    ${sel('elig', Object.entries(ELIG).map(([k,x])=>[k,x[0]]), 'כל מצבי הזכאות')}
+    ${sel('female', [['1','חברות נעמ״ת בלבד']], 'כולם/ן')}
   </div>
   <div class="muted small" style="margin-bottom:8px">${list.length} בוחרים${list.length>150?' · מוצגים 150 הראשונים, צמצמו בעזרת סינון':''}</div>
   ${shown.length?`<div class="vlist">${shown.map(card).join('')}</div>`:`<div class="card empty">${gotv?'כל התומכים הצביעו 🎉':'אין בוחרים תואמים'}</div>`}`;
+}
+
+
+/* ---------- Histadrut structure & elections ---------- */
+const SRC = {about:'https://global.histadrut.org.il/about/', faq:'https://elec.histadrut.org.il/hist-2027/faq/', ballot:'https://elec.histadrut.org.il/hist-2027/', res22:'https://global.histadrut.org.il/news/arnon-bar-david-reelected-as-chairman-of-the-histadrut/', units:'https://global.histadrut.org.il/divisions-unions-and-districts/'};
+const srcA = (k,l='מקור') => `<a href="${SRC[k]}" target="_blank" rel="noopener" class="small">${l} ↗</a>`;
+function vHist(){
+  const vs = visibleVoters(), st = vStats(vs), el = {ok:0,dues:0,no:0}; vs.forEach(v=>el[v.elig||'ok']++);
+  const byU = {}; vs.forEach(v => { const k=v.union||'—'; const x = byU[k] || (byU[k]={n:0,sup:0,w:0}); x.n++; if(isSup(v)) x.sup++; if(v.female) x.w++; });
+  const uRows = Object.entries(byU).sort((a,b)=>b[1].n-a[1].n).map(([k,x]) => `<tr><td><b>${esc(k)}</b></td><td>${x.n}</td><td><span class="pill p-ok">${x.sup}</span> <span class="small muted">${pct(x.sup,x.n)}%</span></td><td>${x.w}</td>
+    <td><button class="btn sec sm" onclick="App.vf('union','${esc(k)}');App.go('voters')">לבוחרים</button></td></tr>`).join('');
+  const dl = Math.ceil((new Date('2026-12-10') - new Date(TODAY))/864e5);
+  const box = (t,s,cls='') => `<div class="hbox ${cls}"><b>${t}</b><div class="small">${s}</div></div>`;
+  return header('מבנה ההסתדרות והבחירות','איך ההסתדרות נשלטת, מי בוחר את מי, ואיך המטה שלנו ממופה עליה') + `
+  <div class="card"><h3>היררכיית השליטה בהסתדרות</h3>
+    <div class="hdiag">
+      ${box('👥 חברי ההסתדרות','כ-800 אלף חברים · בוחרים פעם ב-5 שנים, בהצבעה ממוחשבת בקלפי','mem')}
+      <div class="harr">⬇ בחירה ישירה, באותו יום, ב-3 מסכי הצבעה</div>
+      <div class="hrow">
+        ${box('① יו״ר ההסתדרות','נבחר/ת ישירות ע״י כל החברים','top')}
+        ${box('② ועידת ההסתדרות','2,001 צירים · בחירת סיעה (רשימה)','')}
+        ${box('② מועצות המרחבים','בחירת סיעה למועצה במרחב שלך','')}
+        ${box('③ נעמ״ת','חברות בלבד: ועידת נעמ״ת ומועצות נעמ״ת במרחבים','w')}
+      </div>
+      <div class="hrow">
+        ${box('הנהגת ההסתדרות','13–45 חברים · ממונים ע״י היו״ר ומאושרים ע״י בית הנבחרים','')}
+        ${box('בית הנבחרים','171 צירים · נבחר ע״י הוועידה · סמכות על כל פעולות ההסתדרות והחוקה','')}
+      </div>
+      <div class="hrow">
+        ${box('האיגודים הארציים','26 איגודים (המעו״ף, האחיות, המהנדסים, התחבורה…)','')}
+        ${box('29 מרחבים / מועצות פועלים','הזרוע האזורית — כאן ממוקמות מועצות המרחבים','')}
+        ${box('ועדי עובדים','במקומות העבודה · שם גם מוצבות קלפיות מקום עבודה','')}
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:10px">מקורות: ${srcA('about','אודות ההסתדרות')} · ${srcA('faq','שאלות ותשובות — בחירות 2027')} · ${srcA('ballot','מסכי ההצבעה')} · ${srcA('units','איגודים ומרחבים')}</p>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>מיפוי המטה על ההסתדרות</h3>
+      <ul class="plain">
+        <li><b>מטה ארצי</b> ← מוביל את הקמפיין ליו״ר ואת הסיעה לוועידה</li>
+        <li><b>מחוז</b> ← קבוצת מרחבים (צפון / מרכז / דרום) — חלוקה פנימית של המטה</li>
+        <li><b>מרחב</b> ← מקביל למרחב ההסתדרותי ולמועצת המרחב שנבחרת בו</li>
+        <li><b>קלפי</b> ← קלפי מגורים (08:00–22:00) או קלפי מקום עבודה</li>
+        <li><b>ממריץ/ה</b> ← לרוב פעיל/ת ועד או איש/אשת קשר במקום עבודה</li>
+      </ul>
+      <p class="small muted">בדמו מוצגים 6 מרחבים לדוגמה. בהסתדרות יש 29 מרחבים — אפשר להוסיף אותם במסך "מבנה המטה".</p>
+    </div>
+    <div class="card"><h3>📅 תאריכים קריטיים</h3>
+      <ul class="plain">
+        <li><b>10.06.2026</b> — מועד אחרון להצטרפות להסתדרות כדי להצביע</li>
+        <li><b>10.12.2026</b> — עד מועד זה צריך לשלם מס חבר 3 חודשים לפחות (מיוני 2026) כדי להצביע, ו-6 חודשים כדי להיבחר. אין תשלום רטרואקטיבי. ${dl>0?`<span class="pill p-bad">עוד ${dl} ימים</span>`:''}</li>
+        <li><b>08.06.2027</b> — יום הבחירות (יום ג׳). הצבעה בקלפי בלבד, אין הצבעה מרחוק. יותר מ-2,000 קלפיות</li>
+        <li><b>09.06.2027</b> — פרסום התוצאות</li>
+      </ul>
+      <p class="small muted">${srcA('faq')}</p>
+    </div>
+  </div>
+  <div class="card"><h3>🪪 זכאות הבוחרים במאגר</h3>
+    <div class="kpis">
+      <div class="kpi"><div class="l">זכאים להצביע</div><div class="v" style="color:var(--ok)">${el.ok}</div><div class="h">${pct(el.ok,vs.length)}% מהמאגר</div></div>
+      <div class="kpi"><div class="l">חסר מס חבר</div><div class="v" style="color:var(--warn)">${el.dues}</div><div class="h">${vs.filter(v=>v.elig==='dues'&&isSup(v)).length} מהם תומכים · להסדיר עד 10.12</div></div>
+      <div class="kpi"><div class="l">לא זכאים</div><div class="v" style="color:var(--bad)">${el.no}</div><div class="h">לא חברים / הצטרפו אחרי 10.06.2026</div></div>
+      <div class="kpi"><div class="l">חברות (נעמ״ת)</div><div class="v">${vs.filter(v=>v.female).length}</div><div class="h">מצביעות גם בהצבעה השלישית</div></div>
+    </div>
+    ${el.dues?`<div class="toolbar"><button class="btn" onclick="App.vf('elig','dues');App.go('voters')">⚠️ לרשימת הבוחרים שחסר להם מס חבר</button></div>`:''}
+  </div>
+  <div class="card"><h3>הבוחרים לפי איגוד מקצועי</h3>${uRows?`<div class="tbl"><table><tr><th>איגוד</th><th>בוחרים</th><th>תומכים</th><th>נשים</th><th></th></tr>${uRows}</table></div>`:'<div class="empty">אין בוחרים</div>'}
+    <p class="small muted">שמות האיגודים בעברית הם תרגום של הרשימה באתר ההסתדרות באנגלית.</p></div>`;
+}
+
+function vBallot(){
+  const vs = visibleVoters(), f = forecast(S.voters), m = S.model, all = S.voters;
+  const listShare = Math.min(1, f.share*(m.listCarry||85)/100);
+  const conv = Math.round(listShare*2001), house = Math.round(listShare*171);
+  const women = all.filter(v=>v.female && (v.elig||'ok')!=='no'), wsup = women.filter(isSup);
+  const regions = scopeUnits().filter(u=>u.type==='city').map(c => { const s = vStats(votersIn(c.id)); return `<tr><td><b>${esc(c.name)}</b></td><td>${s.total}</td><td><span class="pill p-ok">${s.sup}</span> ${pct(s.sup,s.total)}%</td><td>${pct(s.voted,s.total)}%</td></tr>`; }).join('');
+  const canEdit = myUnit().type==='national';
+  return header('שלוש ההצבעות','ביום הבחירות כל חבר/ה מצביע/ה במסכים נפרדים — הקמפיין צריך לנצח בכל אחד מהם') + `
+  <div class="grid3">
+    <div class="card ballot"><div class="bn">מסך 1</div><h3>יו״ר ההסתדרות</h3>
+      <div class="pv" style="color:${probColor(f.prob)}">${Math.round(f.prob*100)}%</div><div class="small muted">סיכוי זכייה של ${esc(S.candidate)} (מחדר המצב)</div>
+      <ul class="plain small"><li>תחזית נתח: <b>${Math.round(f.share*100)}%</b> מול ${m.rival}% ליריב המוביל</li><li>קולות צפויים: <b>${Math.round(f.ours).toLocaleString()}</b> מתוך כ-${Math.round(f.V).toLocaleString()} מצביעים</li></ul>
+      <button class="btn sm" onclick="App.go('live')">לחדר המצב</button></div>
+    <div class="card ballot"><div class="bn">מסך 2</div><h3>הסיעה לוועידה ולמועצות המרחבים</h3>
+      <div class="small muted">הרשימה שלנו: <b>${esc(S.listName)}</b></div>
+      <div class="pv">${conv.toLocaleString()}<span class="small muted"> / 2,001</span></div><div class="small muted">צירים צפויים בוועידה (≈ ${house} מתוך 171 בבית הנבחרים)</div>
+      <ul class="plain small"><li>נתח צפוי לרשימה: <b>${Math.round(listShare*100)}%</b> (${m.listCarry||85}% ממצביעי ${esc(S.candidate)} בוחרים גם בסיעה)</li><li>רוב בוועידה: <b>1,001</b> צירים · ${conv>=1001?'<span class="pill p-ok">בהישג</span>':`<span class="pill p-warn">חסרים ${1001-conv}</span>`}</li></ul></div>
+    <div class="card ballot w"><div class="bn">מסך 3</div><h3>נעמ״ת — לחברות בלבד</h3>
+      <div class="small muted">הרשימה שלנו: <b>${esc(S.naamatList)}</b></div>
+      <div class="pv">${wsup.length}<span class="small muted"> / ${women.length}</span></div><div class="small muted">תומכות מתוך החברות הזכאיות במאגר</div>
+      <ul class="plain small"><li>נוצר קשר: <b>${pct(women.filter(v=>v.contacted).length, women.length)}%</b> מהחברות</li><li>להזכיר לכל תומכת להצביע גם במסך נעמ״ת</li></ul>
+      <button class="btn sm" onclick="App.vf('female','1');App.go('voters')">לרשימת החברות</button></div>
+  </div>
+  <div class="card"><h3>מועצות המרחבים — מצב לפי מרחב</h3>${regions?`<div class="tbl"><table><tr><th>מרחב</th><th>בוחרים במאגר</th><th>תומכים</th><th>הצביעו</th></tr>${regions}</table></div>`:'<div class="empty">אין מרחבים בתחום</div>'}</div>
+  <details class="card"><summary style="cursor:pointer;font-weight:700;color:var(--heading)">⚙️ הגדרות הרשימות ${canEdit?'':'<span class="small muted">(עריכה במטה הארצי בלבד)</span>'}</summary>
+    <div class="params">
+      <label class="f"><span>שם הסיעה לוועידה</span><input value="${esc(S.listName)}" ${canEdit?`onchange="App.setHist('listName',this.value)"`:'disabled'}></label>
+      <label class="f"><span>שם הרשימה בנעמ״ת</span><input value="${esc(S.naamatList)}" ${canEdit?`onchange="App.setHist('naamatList',this.value)"`:'disabled'}></label>
+      <label class="f"><span>% ממצביעי המועמד שבוחרים גם בסיעה</span><input type="number" value="${m.listCarry||85}" ${canEdit?`onchange="App.setModel('listCarry',this.value)"`:'disabled'}></label>
+    </div></details>
+  <div class="alert" style="background:var(--warn-soft)">⚠️ <b>הנחות:</b> חישוב הצירים מניח חלוקה יחסית פשוטה. אחוז החסימה ושיטת חלוקת המושבים לא מופיעים באתר הבחירות. מושבי בית הנבחרים נבחרים בפועל ע״י הוועידה, ולכן המספר הוא הערכה בלבד.</div>`;
 }
 
 /* ---------- win model ---------- */
@@ -670,7 +811,7 @@ function forecast(voters, m){
   m = m || S.model;
   const w = {support:m.wSupport/100, leaning:m.wLeaning/100, undecided:m.wUndecided/100, against:0, unknown:m.wUnknown/100};
   let C=0, varC=0;
-  voters.forEach(v => { const p = v.voted ? (isSup(v)?1:0) : w[v.support]; C+=p; varC+=p*(1-p); });
+  voters.forEach(v => { const p = v.voted ? (isSup(v)?1:0) : w[v.support]*(ELIG[v.elig||'ok']||ELIG.ok)[2]; C+=p; varC+=p*(1-p); });
   const V = m.eligible*m.turnout/100;
   const rest = Math.max(0, V - voters.length*m.turnout/100);
   const ours = C + m.organic/100*rest, rival = m.rival/100*V;
@@ -815,7 +956,7 @@ function buildPlan(target, type){
     sec.push({h:'⏱️ גלי המרצה', items:[
       `<b>07:00–10:00 · גל א׳:</b> הוצאת ${rem.filter(v=>v.support==='support').length} תומכים מוצקים, עדיפות לבעלי הסעות (${rides.length})`,
       `<b>10:00–14:00 · גל ב׳:</b> שיחות ל-${rem.filter(v=>v.support==='leaning').length} נוטים לתמוך — תזכורת אישית ותיאום הגעה`,
-      `<b>14:00–18:00 · גל ג׳:</b> סבב שיחות לכל מי שטרם סומן כמצביע; ממריץ מתחת ל-50% מקבל תגבור מרכז העיר`,
+      `<b>14:00–18:00 · גל ג׳:</b> סבב שיחות לכל מי שטרם סומן כמצביע; ממריץ מתחת ל-50% מקבל תגבור מרכז המרחב`,
       `<b>18:00–סגירה · גל ד׳:</b> מבצע אחרון — הסעות דחופות ושיחה שנייה לכל מי שלא הצביע`]});
     sec.push({h:'👥 משימות לפי ממריץ', items: mobs.map(mm => { const r = L.filter(v=>v.mobId===mm.id && isSup(v) && !v.voted);
       return `<b>${esc(mm.name)}</b> (${esc(U(mm.unitId).name)}, ${esc(mm.phone)}): להוציא <b>${r.length}</b> תומכים · ${r.filter(v=>v.ride).length} הסעות`; }).slice(0,30)});
@@ -832,7 +973,9 @@ function buildPlan(target, type){
       `<b>יצירת קשר ראשונה</b> עם ${st.total-st.contacted} בוחרים — ${Math.ceil((st.total-st.contacted)/d)} שיחות ביום`,
       `<b>שכנוע ${st.undecided} מתלבטים</b> — שיחה אישית, ביקור בית או חוג בית; יעד המרה 30% (${Math.ceil(st.undecided*.3)} תומכים)`,
       `<b>חיזוק ${st.leaning} נוטים לתמוך</b> — הזמנה למפגש עם רועי והחתמה על התחייבות הצבעה`,
-      `<b>איתור צורכי הסעה</b> — כרגע ${st.ride} מסומנים; לוודא מול כל תומך`]});
+      `<b>איתור צורכי הסעה</b> — כרגע ${st.ride} מסומנים; לוודא מול כל תומך`,
+      `<b>הסדרת זכאות</b> — ${L.filter(v=>v.elig==='dues'&&isSup(v)).length} תומכים שחסר להם מס חבר: לוודא תשלום של 3 חודשים לפחות עד 10.12.2026`,
+      `<b>שלוש ההצבעות</b> — להזכיר לכל תומך להצביע לרועי ליו״ר וגם לסיעה (${esc(S.listName)}); לכל תומכת — גם לרשימה בנעמ״ת`]});
     sec.push({h:'👥 משימות לפי ממריץ', items: mobs.map(mm => { const s = vStats(L.filter(v=>v.mobId===mm.id)), gap = Math.max(0, mm.target-s.total);
       return {gap, html:`<b>${esc(mm.name)}</b> (${esc(U(mm.unitId).name)}): ${s.total-s.contacted} שיחות ראשונות · שכנוע ${s.undecided} מתלבטים (יעד ${Math.ceil(s.undecided*.3)}) · ${gap?`גיוס <b>${gap}</b> בוחרים חדשים להשלמת יעד ${mm.target}`:'עמד/ה ביעד הגיוס ✓'}`}; }).sort((a,b)=>b.gap-a.gap).slice(0,30).map(x=>x.html)});
     sec.push({h:'🔮 תרחישים — מה יקרה לסיכוי הזכייה אם…', items:[
@@ -943,7 +1086,7 @@ function vRank(){
   const idle = lst.filter(x=>!x.today), low = lst.filter(x=>x.s.contacted>=5 && x.conv<avg-15), behind = lst.filter(x=>x.tp<50);
   const names = a => a.slice(0,5).map(x=>esc(x.m.name)).join(', ') + (a.length>5?` ועוד ${a.length-5}`:'');
   const alerts = isMob() ? '' : `<div class="card"><h3>🧭 הכוונות למטה בזמן אמת</h3>
-    ${idle.length?`<div class="alert" style="background:var(--warn-soft)">⏰ <b>${idle.length} ממריצים ללא אישורים היום:</b> ${names(idle)} — מומלץ שרכז/ת העיר ייצור קשר ויקבע יעד יומי</div>`:''}
+    ${idle.length?`<div class="alert" style="background:var(--warn-soft)">⏰ <b>${idle.length} ממריצים ללא אישורים היום:</b> ${names(idle)} — מומלץ שרכז/ת המרחב ייצור קשר ויקבע יעד יומי</div>`:''}
     ${low.length?`<div class="alert" style="background:var(--bad-soft)">🎯 <b>שיעור המרה נמוך (ממוצע ${avg}%):</b> ${names(low)} — לשלב בשיחות משותפות עם ממריץ מוביל ולרענן תסריט שיחה</div>`:''}
     ${behind.length?`<div class="alert" style="background:var(--info-soft)">➕ <b>מתחת ל-50% מיעד הגיוס:</b> ${names(behind)} — להעביר לידים מאזור חזק או להתמקד בגיוס חברים לעבודה</div>`:''}
     ${top[0]?`<div class="alert" style="background:var(--ok-soft)">👑 <b>${esc(top[0].m.name)}</b> מוביל/ה עם ${top[0].pts} נק׳ — לפרסם הוקרה בקבוצת המטה כדי לדרבן את כולם</div>`:''}</div>`;
@@ -971,7 +1114,7 @@ window.App = {
   switchUser(id){ S.currentUser=id; S.focus=null; save(); render(); },
   reset(){ if(confirm('לאפס את כל הנתונים לנתוני הדמו?')){ S=seed(); save(); render(); } },
   more(){
-    const items = isMob() ? [] : [['mob','🤝 ממריצים'],['appr','✅ אישורים ופיקוח'],['gotv','🚀 הוצאה להצבעה'],['proc','🔄 תהליכים'],['inc','🚨 אירועים וחריגות'],['tasks','📋 משימות'],['turn','🗳️ דיווחי הצבעה'],['org','🏛️ מבנה ארגוני'],['log','📜 יומן פעולות']];
+    const items = isMob() ? [] : [['mob','🤝 ממריצים'],['appr','✅ אישורים ופיקוח'],['gotv','🚀 הוצאה להצבעה'],['proc','🔄 תהליכים'],['inc','🚨 אירועים וחריגות'],['tasks','📋 משימות'],['turn','📈 דיווחי הצבעה'],['hist','🏛️ מבנה ההסתדרות'],['ballot','🗳️ שלוש ההצבעות'],['org','🧭 מבנה המטה'],['log','📜 יומן פעולות']];
     modal('תפריט', `<div class="sheet-list">${items.map(([k,l])=>`<button type="button" onclick="document.getElementById('dlg').close();App.go('${k}')">${l}</button>`).join('')}
       ${isMob()?'':`<button type="button" onclick="document.getElementById('dlg').close();App.settings()">⚙️ הגדרות קמפיין</button>`}
       <button type="button" onclick="document.getElementById('dlg').close();App.reset()">♻️ איפוס נתוני דמו</button></div>`, []);
@@ -985,6 +1128,7 @@ window.App = {
   },
 
   /* --- war room --- */
+  setHist(k,v){ S[k]=v; log(`עודכנה הגדרת רשימה: ${k}`); save(); render(); },
   setModel(k,v){ S.model[k]=+v; log(`עודכן פרמטר מודל: ${k}=${v}`); save(); render(); },
   sim(){
     if (simTimer){ clearInterval(simTimer); simTimer=null; render(); return; }
@@ -1054,7 +1198,7 @@ window.App = {
     modal('ממריץ/ה חדש/ה', `
       <label class="f"><span>שם מלא</span><input name="name" required></label>
       <label class="f"><span>טלפון</span><input name="phone" type="tel"></label>
-      <label class="f"><span>עיר / אזור</span><select name="unit">${cities.map(c=>`<option value="${c.id}">${esc(path(c.id))}</option>`).join('')}</select></label>
+      <label class="f"><span>מרחב</span><select name="unit">${cities.map(c=>`<option value="${c.id}">${esc(path(c.id))}</option>`).join('')}</select></label>
       <label class="f"><span>יעד גיוס בוחרים</span><input type="number" name="target" min="1" value="30" required></label>`,
       [{label:'הוספה', value:'ok', fn:d=>{
         const m={id:uid(),name:d.name,phone:d.phone,unitId:d.unit,target:+d.target};
@@ -1066,7 +1210,7 @@ window.App = {
     modal(`עריכת ממריץ/ה — ${m.name}`, `
       <label class="f"><span>שם מלא</span><input name="name" value="${esc(m.name)}" required></label>
       <label class="f"><span>טלפון</span><input name="phone" type="tel" value="${esc(m.phone)}"></label>
-      <label class="f"><span>עיר / אזור</span><select name="unit">${cities.map(c=>`<option value="${c.id}" ${c.id===m.unitId?'selected':''}>${esc(path(c.id))}</option>`).join('')}</select></label>
+      <label class="f"><span>מרחב</span><select name="unit">${cities.map(c=>`<option value="${c.id}" ${c.id===m.unitId?'selected':''}>${esc(path(c.id))}</option>`).join('')}</select></label>
       <label class="f"><span>יעד גיוס בוחרים</span><input type="number" name="target" min="1" value="${m.target}" required></label>
       <label class="f"><span>בעת מחיקה — העברת ${n} הבוחרים אל</span><select name="moveTo">${others.map(o=>`<option value="${o.id}">${esc(o.name)} (${esc(U(o.unitId).name)})</option>`).join('')}</select></label>`,
       [{label:'שמירה', value:'ok', fn:d=>{
@@ -1088,18 +1232,22 @@ window.App = {
       ${isMob()?'':`<label class="f"><span>ממריץ/ה אחראי/ת</span><select name="mobId">${mobs.map(m=>`<option value="${m.id}" ${m.id===defMob?'selected':''}>${esc(m.name)} (${esc(U(m.unitId).name)})</option>`).join('')}</select></label>`}
       <label class="f"><span>קלפי</span><select name="stationId"><option value="">לא ידוע</option>${sts.map(s=>`<option value="${s.id}" ${s.id===v.stationId?'selected':''}>${esc(s.name)} — ${esc(U(s.parentId).name)}</option>`).join('')}</select></label>
       <label class="f"><span>סטטוס תמיכה</span><select name="support">${Object.entries(SUP).map(([k,x])=>`<option value="${k}" ${k===(v.support||'unknown')?'selected':''}>${x[0]}</option>`).join('')}</select></label>
+      <label class="f"><span>איגוד מקצועי</span><select name="union"><option value="">לא ידוע</option>${UNIONS.map(u=>`<option ${u===v.union?'selected':''}>${esc(u)}</option>`).join('')}</select></label>
+      <label class="f"><span>מקום עבודה / ועד עובדים</span><input name="workplace" value="${esc(v.workplace||'')}"></label>
+      <label class="f"><span>זכאות להצביע (מס חבר)</span><select name="elig">${Object.entries(ELIG).map(([k,x])=>`<option value="${k}" ${k===(v.elig||'ok')?'selected':''}>${x[0]}</option>`).join('')}</select></label>
+      <label class="f"><span>מצביע/ה גם בנעמ״ת (חברה)</span><select name="female"><option value="">לא</option><option value="1" ${v.female?'selected':''}>כן</option></select></label>
       <label class="f"><span>הערה</span><input name="note" value="${esc(v.note||'')}"></label>`;
   },
   addVoter(){
     if(!visibleMobs().length){ alert('יש להוסיף ממריץ/ה קודם'); return; }
     modal('בוחר/ת חדש/ה', App.voterForm(), [{label:'הוספה', value:'ok', fn:d=>{
-      const nv={id:uid(),name:d.name,phone:d.phone,mobId:isMob()?me().mobId:d.mobId,stationId:d.stationId,support:d.support,contacted:d.support!=='unknown',voted:false,ride:false,note:d.note}; S.voters.push(nv); feedPush(nv, isSup(nv)?nv.support:'new');
+      const nv={id:uid(),name:d.name,phone:d.phone,mobId:isMob()?me().mobId:d.mobId,stationId:d.stationId,support:d.support,contacted:d.support!=='unknown',voted:false,ride:false,note:d.note,union:d.union,workplace:d.workplace,elig:d.elig,female:!!d.female}; S.voters.push(nv); feedPush(nv, isSup(nv)?nv.support:'new');
     }}]);
   },
   editVoter(id){
     const v=S.voters.find(x=>x.id===id);
     modal(`עריכת בוחר/ת — ${v.name}`, App.voterForm(v), [
-      {label:'שמירה', value:'ok', fn:d=>{ const old=v.mobId; Object.assign(v,{name:d.name,phone:d.phone,stationId:d.stationId,support:d.support,note:d.note}); if(!isMob()&&d.mobId){ v.mobId=d.mobId; if(old!==d.mobId) log(`${v.name} הועבר/ה מ${M(old)?.name} ל${M(d.mobId)?.name}`);} }},
+      {label:'שמירה', value:'ok', fn:d=>{ const old=v.mobId; Object.assign(v,{name:d.name,phone:d.phone,stationId:d.stationId,support:d.support,note:d.note,union:d.union,workplace:d.workplace,elig:d.elig,female:!!d.female}); if(!isMob()&&d.mobId){ v.mobId=d.mobId; if(old!==d.mobId) log(`${v.name} הועבר/ה מ${M(old)?.name} ל${M(d.mobId)?.name}`);} }},
       {label:'מחיקה', cls:'bad', value:'del', novalidate:true, fn:()=>{ if(!confirm(`למחוק את ${v.name}?`)) return false; S.voters=S.voters.filter(x=>x.id!==id); }}]);
   },
   importVoters(){
